@@ -1,0 +1,8 @@
+node_modules/
+.env
+.vercel
+
+# Base de datos local y archivos subidos (fotos, videos, logo) — se generan solos.
+# En Railway/Render/un VPS, esta carpeta es la que hay que montar como volumen/disco persistente.
+storage/*
+!storage/.gitkeep
