@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Ingresar' }) %>
+</head>
+<body class="admin-login-body">
+  <div class="admin-login-card">
+    <h1>🐾 AMA Pets</h1>
+    <p>Panel administrativo</p>
+    <% if (error) { %><p class="admin-error"><%= error %></p><% } %>
+    <form method="post" action="/admin/login">
+      <label>Usuario</label>
+      <input type="text" name="username" required autofocus />
+      <label>Contraseña</label>
+      <input type="password" name="password" required />
+      <button type="submit" class="btn btn--primary btn--block">Ingresar</button>
+    </form>
+  </div>
+</body>
+</html>

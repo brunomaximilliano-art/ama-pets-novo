@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Categorías' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'categorias' }) %>
+  <main class="admin-main">
+    <h1>Categorías</h1>
+
+    <form method="post" action="/admin/categorias" class="admin-inline-form">
+      <input type="text" name="name" placeholder="Nombre de la nueva categoría" required />
+      <button type="submit" class="btn btn--primary">Agregar</button>
+    </form>
+
+    <table class="admin-table">
+      <thead><tr><th>Nombre</th><th>Orden</th><th></th></tr></thead>
+      <tbody>
+        <% categories.forEach(function(c, i){ %>
+          <tr>
+            <td><%= c.name %></td>
+            <td>
+              <form method="post" action="/admin/categorias/<%= c.id %>/mover" style="display:inline">
+                <input type="hidden" name="dir" value="up" />
+                <button type="submit" class="admin-icon-btn" <%= i===0 ? 'disabled' : '' %>>↑</button>
+              </form>
+              <form method="post" action="/admin/categorias/<%= c.id %>/mover" style="display:inline">
+                <input type="hidden" name="dir" value="down" />
+                <button type="submit" class="admin-icon-btn" <%= i===categories.length-1 ? 'disabled' : '' %>>↓</button>
+              </form>
+            </td>
+            <td>
+              <form method="post" action="/admin/categorias/<%= c.id %>/eliminar" onsubmit="return confirm('¿Eliminar categoría? Los productos quedarán sin categoría.')">
+                <button type="submit" class="link-danger">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

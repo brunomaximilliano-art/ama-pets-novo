@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Pedidos' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'pedidos' }) %>
+  <main class="admin-main">
+    <h1>Pedidos</h1>
+    <% if (!orders.length) { %>
+      <p class="admin-muted">Todavía no hay pedidos. Los pedidos se registran acá cuando un cliente finaliza la compra (además de enviarse por WhatsApp).</p>
+    <% } %>
+    <% orders.forEach(function(o){ %>
+      <% var items = JSON.parse(o.items_json || '[]'); %>
+      <section class="admin-card">
+        <div class="admin-main__head">
+          <h2>Pedido #<%= o.id %> — <%= o.customer_name %></h2>
+          <form method="post" action="/admin/pedidos/<%= o.id %>/estado">
+            <select name="status" onchange="this.form.submit()">
+              <% ['nuevo','confirmado','entregado','cancelado'].forEach(function(s){ %>
+                <option value="<%= s %>" <%= o.status === s ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </form>
+        </div>
+        <p class="admin-muted"><%= o.created_at %> · Tel: <%= o.phone %> · <%= o.delivery_method === 'entrega' ? 'Entrega' + (o.courier_name ? ' (' + o.courier_name + ')' : '') : 'Retirada' %> · Pago: <%= o.payment_method %></p>
+        <% if (o.address) { %><p class="admin-muted">Dirección: <%= o.address %></p><% } %>
+        <ul>
+          <% items.forEach(function(it){ %>
+            <li><%= it.qty %>x <%= it.name %> — <%= money(it.price * it.qty) %></li>
+          <% }) %>
+        </ul>
+        <p><strong>Total: <%= money(o.total) %></strong></p>
+        <% if (o.observation) { %><p class="admin-muted">Obs: <%= o.observation %></p><% } %>
+      </section>
+    <% }) %>
+  </main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: category.name }) %>
+</head>
+<body>
+  <%- include('partials/header', { showBack: true }) %>
+
+  <main class="main">
+    <h1 class="page-title"><%= category.name %></h1>
+    <% if (!products.length) { %>
+      <div class="empty-state"><p>No hay productos en esta categoría todavía.</p></div>
+    <% } %>
+    <div class="product-grid">
+      <% products.forEach(function(product) { %>
+        <%- include('partials/product-card', { product: product }) %>
+      <% }) %>
+    </div>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

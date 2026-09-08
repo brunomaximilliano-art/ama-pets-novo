@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Pagos' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'pagos' }) %>
+  <main class="admin-main">
+    <h1>Métodos de pago</h1>
+    <form method="post" action="/admin/pagos" class="admin-form">
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="cash_enabled" value="1" <%= settings.cash_enabled === '1' ? 'checked' : '' %> /> Efectivo</label>
+      </div>
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="transfer_enabled" value="1" <%= settings.transfer_enabled === '1' ? 'checked' : '' %> /> Transferencia bancaria</label>
+      </div>
+      <label>Datos para transferencia (banco, cuenta/alias, titular)</label>
+      <textarea name="transfer_info" rows="3"><%= settings.transfer_info %></textarea>
+
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="card_enabled" value="1" <%= settings.card_enabled === '1' ? 'checked' : '' %> /> Tarjeta de débito/crédito al recibir</label>
+      </div>
+
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="mercadopago_enabled" value="1" <%= settings.mercadopago_enabled === '1' ? 'checked' : '' %> /> Mercado Pago</label>
+      </div>
+      <label>Recargo de Mercado Pago (%, opcional)</label>
+      <input type="number" step="0.1" min="0" name="mercadopago_surcharge_pct" value="<%= settings.mercadopago_surcharge_pct %>" />
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

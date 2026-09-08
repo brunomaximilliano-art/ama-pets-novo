@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Finalizar pedido' }) %>
+</head>
+<body>
+  <%- include('partials/header', { showBack: true }) %>
+
+  <main class="main checkout-page">
+    <h1 class="page-title">Datos</h1>
+
+    <form id="checkout-form">
+      <label class="field-label" for="customerName">Nombre y apellido</label>
+      <input type="text" id="customerName" name="customerName" required />
+
+      <label class="field-label" for="phone">Teléfono</label>
+      <div class="phone-field">
+        <span class="phone-prefix"><%= settings.country_code %></span>
+        <input type="tel" id="phone" name="phone" required />
+      </div>
+
+      <div id="address-field" hidden>
+        <label class="field-label" for="address">Dirección</label>
+        <textarea id="address" name="address" rows="2"></textarea>
+      </div>
+
+      <h2 class="section-title">Método de pago</h2>
+      <div class="payment-options">
+        <% if (settings.cash_enabled === '1') { %>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="efectivo" />
+          <span class="payment-option__icon">💵</span>
+          <strong>Efectivo</strong>
+          <div class="payment-option__extra" id="cash-extra" hidden>
+            <label class="field-label" for="cashAmount">Ingresa el monto que tienes en mano:</label>
+            <input type="number" min="0" step="1" id="cashAmount" placeholder="$U" />
+            <p>Recibirás de cambio: <strong id="cashChange">$ 0,00</strong></p>
+          </div>
+        </label>
+        <% } %>
+
+        <% if (settings.transfer_enabled === '1') { %>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="transferencia" />
+          <span class="payment-option__icon">🏦</span>
+          <strong>Transferencia bancaria</strong>
+          <div class="payment-option__extra" id="transfer-extra" hidden>
+            <p class="transfer-info"><%= settings.transfer_info %></p>
+          </div>
+        </label>
+        <% } %>
+
+        <% if (settings.card_enabled === '1') { %>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="tarjeta" />
+          <span class="payment-option__icon">💳</span>
+          <strong>Tarjeta de débito/crédito (al recibir)</strong>
+        </label>
+        <% } %>
+
+        <% if (settings.mercadopago_enabled === '1') { %>
+        <label class="payment-option">
+          <input type="radio" name="payment" value="mercadopago" />
+          <span class="payment-option__icon">📱</span>
+          <strong>Mercado Pago<% if (Number(settings.mercadopago_surcharge_pct) > 0) { %> con <%= settings.mercadopago_surcharge_pct %>% de recargo<% } %></strong>
+        </label>
+        <% } %>
+      </div>
+
+      <div class="cart-summary cart-summary--static" id="order-summary">
+        <div class="cart-summary__row">
+          <span id="summary-count">0 artículos</span>
+          <span id="summary-subtotal">$ 0,00</span>
+        </div>
+        <div class="cart-summary__row">
+          <span id="summary-delivery-label">Entrega</span>
+          <span id="summary-delivery-value">Gratis</span>
+        </div>
+        <div class="cart-summary__row cart-summary__row--total">
+          <span>Total:</span>
+          <strong id="summary-total">$ 0,00</strong>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn--whatsapp btn--block" id="btn-submit-order">
+        <span aria-hidden="true">📲</span> Enviar pedido
+      </button>
+      <p class="form-error" id="form-error" hidden></p>
+    </form>
+  </main>
+
+  <script>
+    window.__SETTINGS__ = <%- JSON.stringify(settings) %>;
+  </script>
+  <%- include('partials/footer') %>
+  <script src="/js/checkout-page.js" defer></script>
+</body>
+</html>

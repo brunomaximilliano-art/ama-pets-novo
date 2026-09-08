@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Entrega' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'entrega' }) %>
+  <main class="admin-main">
+    <h1>Entrega</h1>
+
+    <section class="admin-card">
+      <h2>Configuración general</h2>
+      <form method="post" action="/admin/entrega/general" class="admin-form">
+        <label>Zona con envío gratis</label>
+        <input type="text" name="free_delivery_zone" value="<%= settings.free_delivery_zone %>" />
+
+        <label>Texto que ve el cliente sobre la entrega</label>
+        <textarea name="delivery_note" rows="3"><%= settings.delivery_note %></textarea>
+
+        <div class="admin-checkbox-row">
+          <label><input type="checkbox" name="pickup_enabled" value="1" <%= settings.pickup_enabled === '1' ? 'checked' : '' %> /> Ofrecer opción de retirada en el local</label>
+        </div>
+        <label>Tiempo de preparación para retirar</label>
+        <input type="text" name="pickup_days" value="<%= settings.pickup_days %>" placeholder="Ej: 3 días" />
+        <label>Nota de retirada (dirección, horarios, etc.)</label>
+        <textarea name="pickup_note" rows="2"><%= settings.pickup_note %></textarea>
+
+        <div class="admin-form__actions">
+          <button type="submit" class="btn btn--primary">Guardar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card">
+      <h2>Transportadoras (para envíos fuera de la zona gratis)</h2>
+      <table class="admin-table">
+        <thead><tr><th>Nombre</th><th>Nota</th><th>Costo fijo</th><th>Activa</th><th></th><th></th></tr></thead>
+        <tbody>
+          <% couriers.forEach(function(c){ %>
+            <tr>
+              <td><input type="text" name="name" value="<%= c.name %>" form="courier-form-<%= c.id %>" /></td>
+              <td><input type="text" name="note" value="<%= c.note %>" form="courier-form-<%= c.id %>" /></td>
+              <td><input type="number" step="0.01" min="0" name="cost" value="<%= c.cost %>" style="width:100px" form="courier-form-<%= c.id %>" /></td>
+              <td><input type="checkbox" name="active" value="1" <%= c.active ? 'checked' : '' %> form="courier-form-<%= c.id %>" /></td>
+              <td>
+                <form id="courier-form-<%= c.id %>" method="post" action="/admin/entrega/transportadoras/<%= c.id %>"></form>
+                <button type="submit" form="courier-form-<%= c.id %>" class="btn btn--secondary btn--sm">Guardar</button>
+              </td>
+              <td>
+                <form method="post" action="/admin/entrega/transportadoras/<%= c.id %>/eliminar" onsubmit="return confirm('¿Eliminar?')">
+                  <button type="submit" class="link-danger">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <form method="post" action="/admin/entrega/transportadoras" class="admin-inline-form">
+        <input type="text" name="name" placeholder="Nombre de la nueva transportadora" required />
+        <button type="submit" class="btn btn--primary">Agregar</button>
+      </form>
+      <p class="admin-hint">Dejá "Costo fijo" en 0 si el costo lo paga el comprador directamente a la transportadora (como en Turil Cargo y DAC).</p>
+    </section>
+  </main>
+</body>
+</html>

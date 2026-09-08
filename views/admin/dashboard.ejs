@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Inicio' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'dashboard' }) %>
+  <main class="admin-main">
+    <h1>Inicio</h1>
+    <div class="stat-grid">
+      <div class="stat-card"><strong><%= productCount %></strong><span>Productos</span></div>
+      <div class="stat-card"><strong><%= categoryCount %></strong><span>Categorías</span></div>
+      <div class="stat-card"><strong><%= orderCount %></strong><span>Pedidos</span></div>
+    </div>
+
+    <h2>Últimos pedidos</h2>
+    <% if (!orders.length) { %>
+      <p class="admin-muted">Todavía no hay pedidos.</p>
+    <% } else { %>
+      <table class="admin-table">
+        <thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>
+          <% orders.forEach(function(o){ %>
+            <tr>
+              <td>#<%= o.id %></td>
+              <td><%= o.customer_name %></td>
+              <td><%= o.phone %></td>
+              <td><%= money(o.total) %></td>
+              <td><span class="tag"><%= o.status %></span></td>
+              <td><%= o.created_at %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <p><a href="/admin/pedidos">Ver todos los pedidos ›</a></p>
+    <% } %>
+  </main>
+</body>
+</html>

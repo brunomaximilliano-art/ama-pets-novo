@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: product ? 'Editar producto' : 'Nuevo producto' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'productos' }) %>
+  <main class="admin-main">
+    <h1><%= product ? 'Editar producto' : 'Nuevo producto' %></h1>
+
+    <form
+      method="post"
+      action="<%= product ? '/admin/productos/' + product.id + '/editar' : '/admin/productos' %>"
+      enctype="multipart/form-data"
+      class="admin-form"
+    >
+      <label>Nombre</label>
+      <input type="text" name="name" required value="<%= product ? product.name : '' %>" />
+
+      <label>Categoría</label>
+      <select name="category_id">
+        <option value="">Sin categoría</option>
+        <% categories.forEach(function(c){ %>
+          <option value="<%= c.id %>" <%= product && product.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+
+      <div class="admin-form__row">
+        <div>
+          <label>Precio</label>
+          <input type="number" step="0.01" min="0" name="price" required value="<%= product ? product.price : '' %>" />
+        </div>
+        <div>
+          <label>Precio promocional (opcional)</label>
+          <input type="number" step="0.01" min="0" name="promo_price" value="<%= product && product.promo_price != null ? product.promo_price : '' %>" />
+        </div>
+      </div>
+
+      <div class="admin-form__row">
+        <div class="admin-checkbox-row">
+          <label><input type="checkbox" name="track_stock" value="1" id="track_stock" <%= product && product.track_stock ? 'checked' : '' %> /> Controlar stock</label>
+        </div>
+        <div>
+          <label>Stock disponible</label>
+          <input type="number" min="0" name="stock" id="stock_input" value="<%= product && product.stock != null ? product.stock : '' %>" />
+        </div>
+      </div>
+
+      <label>Descripción</label>
+      <textarea name="description" rows="4"><%= product ? product.description : '' %></textarea>
+
+      <label>Video (opcional): pegá un link de YouTube</label>
+      <input type="text" name="video_url" placeholder="https://www.youtube.com/watch?v=..." value="<%= product && !/^\/uploads|^https:\/\/.*blob/.test(product.video_url || '') ? product.video_url : '' %>" />
+      <label>...o subí un video corto (máx. 4MB; para videos más largos, usá un link de YouTube)</label>
+      <input type="file" name="video" accept="video/*" />
+      <% if (product && product.video_url && /^\/uploads|blob/.test(product.video_url)) { %>
+        <p class="admin-hint">Ya hay un video subido. Si subís uno nuevo, reemplaza al anterior.</p>
+      <% } %>
+
+      <label>Fotos del producto</label>
+      <input type="file" name="images" accept="image/*" multiple />
+      <p class="admin-hint">Podés subir varias fotos a la vez. La primera foto es la que se muestra en la grilla.</p>
+
+      <% if (images && images.length) { %>
+        <div class="admin-image-grid">
+          <% images.forEach(function(img){ %>
+            <div class="admin-image-grid__item">
+              <img src="<%= img.path %>" alt="" />
+              <form method="post" action="/admin/productos/<%= product.id %>/imagenes/<%= img.id %>/eliminar" onsubmit="return confirm('¿Eliminar esta foto?')">
+                <button type="submit" class="admin-image-grid__remove">&times;</button>
+              </form>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="active" value="1" <%= !product || product.active ? 'checked' : '' %> /> Producto visible en la tienda</label>
+      </div>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn btn--primary"><%= product ? 'Guardar cambios' : 'Crear producto' %></button>
+        <a href="/admin/productos" class="btn btn--secondary">Cancelar</a>
+        <% if (product) { %>
+          <form method="post" action="/admin/productos/<%= product.id %>/eliminar" onsubmit="return confirm('¿Eliminar este producto?')" style="margin-left:auto;">
+            <button type="submit" class="btn btn--danger">Eliminar producto</button>
+          </form>
+        <% } %>
+      </div>
+    </form>
+  </main>
+  <script>
+    document.getElementById('track_stock').addEventListener('change', function () {
+      document.getElementById('stock_input').disabled = !this.checked;
+    });
+    document.getElementById('stock_input').disabled = !document.getElementById('track_stock').checked;
+  </script>
+</body>
+</html>

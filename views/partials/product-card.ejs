@@ -1,0 +1,25 @@
+<%
+  var img = (product.images && product.images.length) ? product.images[0] : ('/placeholder.svg?text=' + encodeURIComponent(product.name));
+  var hasPromo = product.promo_price != null && product.promo_price !== '' && Number(product.promo_price) < Number(product.price);
+  var pct = hasPromo ? Math.round(100 - (Number(product.promo_price) / Number(product.price)) * 100) : 0;
+%>
+<a class="product-card" href="/p/<%= product.slug %>">
+  <div class="product-card__image">
+    <% if (hasPromo) { %><span class="badge badge--promo">-<%= pct %>%</span><% } %>
+    <img src="<%= img %>" alt="<%= product.name %>" loading="lazy" />
+  </div>
+  <div class="product-card__body">
+    <% if (product.track_stock) { %>
+      <span class="product-card__stock">Disponible: <%= product.stock %></span>
+    <% } %>
+    <p class="product-card__name"><%= product.name %></p>
+    <p class="product-card__price">
+      <% if (hasPromo) { %>
+        <span class="price price--old"><%= money(product.price) %></span>
+        <span class="price price--promo"><%= money(product.promo_price) %></span>
+      <% } else { %>
+        <span class="price"><%= money(product.price) %></span>
+      <% } %>
+    </p>
+  </div>
+</a>

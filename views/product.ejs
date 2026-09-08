@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: product.name }) %>
+</head>
+<body>
+  <%- include('partials/header', { showBack: true }) %>
+
+  <main class="main product-detail" data-product-id="<%= product.id %>" data-price="<%= product.promo_price || product.price %>" data-name="<%= product.name.replace(/"/g,'&quot;') %>">
+    <% if (category) { %><p class="eyebrow"><%= category.name %></p><% } %>
+
+    <div class="product-gallery">
+      <% var imgs = images.length ? images : ['/placeholder.svg?text=' + encodeURIComponent(product.name)]; %>
+      <% imgs.forEach(function(img, i) { %>
+        <img src="<%= img %>" alt="<%= product.name %>" class="product-gallery__img <%= i===0 ? 'is-active' : '' %>" />
+      <% }) %>
+    </div>
+
+    <h1 class="product-title"><%= product.name %></h1>
+
+    <p class="product-price">
+      <% var hasPromo = product.promo_price != null && Number(product.promo_price) < Number(product.price); %>
+      <% if (hasPromo) { %>
+        <span class="price price--old"><%= money(product.price) %></span>
+        <span class="price price--promo price--lg"><%= money(product.promo_price) %></span>
+      <% } else { %>
+        <span class="price price--lg"><%= money(product.price) %></span>
+      <% } %>
+    </p>
+
+    <div class="add-to-cart-widget" id="add-to-cart-widget">
+      <button type="button" class="btn btn--primary" id="btn-add">Añadir</button>
+      <div class="qty-stepper" id="qty-stepper" hidden>
+        <button type="button" class="qty-btn" id="qty-remove" aria-label="Quitar">🗑</button>
+        <span class="qty-value" id="qty-value">1</span>
+        <button type="button" class="qty-btn" id="qty-plus" aria-label="Sumar">+</button>
+      </div>
+      <% if (product.track_stock) { %>
+        <span class="product-detail__stock">Disponible: <%= product.stock %></span>
+      <% } %>
+    </div>
+
+    <section class="product-description">
+      <h2>Descripción</h2>
+      <p><%= product.description %></p>
+    </section>
+
+    <% if (product.video_url) { %>
+      <section class="product-video">
+        <h2>Video</h2>
+        <% if (/youtube\.com|youtu\.be/.test(product.video_url)) {
+             var vid = product.video_url.match(/(?:v=|youtu\.be\/)([\w-]{6,})/);
+             var embed = vid ? 'https://www.youtube.com/embed/' + vid[1] : product.video_url;
+        %>
+          <div class="video-embed"><iframe src="<%= embed %>" title="Video del producto" allowfullscreen></iframe></div>
+        <% } else { %>
+          <video controls src="<%= product.video_url %>" class="video-native"></video>
+        <% } %>
+      </section>
+    <% } %>
+
+    <p class="whatsapp-question">
+      ¿Preguntas sobre el producto? Entra en contacto en
+      <a href="https://wa.me/<%= settings.whatsapp_number %>?text=<%= encodeURIComponent('Hola! Tengo una consulta sobre ' + product.name) %>" target="_blank" rel="noopener">WhatsApp</a>
+    </p>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

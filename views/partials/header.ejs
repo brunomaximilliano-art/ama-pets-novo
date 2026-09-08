@@ -1,0 +1,27 @@
+<div class="cookie-banner" id="cookie-banner" hidden>
+  <p>Usamos cookies para mejorar tu experiencia en el sitio.</p>
+  <button type="button" id="cookie-accept">Aceptar y cerrar</button>
+</div>
+
+<header class="site-header">
+  <div class="site-header__top">
+    <% if (typeof showBack !== 'undefined' && showBack) { %>
+      <a href="javascript:history.back()" class="icon-btn" aria-label="Volver">&#8592;</a>
+    <% } else { %>
+      <span class="icon-btn icon-btn--placeholder"></span>
+    <% } %>
+    <a href="/" class="site-logo">
+      <img src="<%= settings.logo_path %>" alt="<%= settings.store_name %>" />
+    </a>
+    <a href="/carrito" class="icon-btn cart-icon" aria-label="Carrito">
+      🛒<span class="cart-badge" id="cart-badge" hidden>0</span>
+    </a>
+  </div>
+
+  <nav class="category-nav">
+    <a href="/" class="chip <%= !activeCategory ? 'chip--active' : '' %>">Inicio</a>
+    <% categories.forEach(function(c) { %>
+      <a href="/c/<%= c.slug %>" class="chip <%= activeCategory === c.slug ? 'chip--active' : '' %>"><%= c.name %></a>
+    <% }) %>
+  </nav>
+</header>

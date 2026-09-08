@@ -1,0 +1,14 @@
+  <footer class="site-footer">
+    <p>Catálogo online de <strong><%= settings.store_name %></strong></p>
+    <p class="site-footer__muted">Todos los productos y ofertas de este catálogo son responsabilidad de <%= settings.store_name %>.</p>
+  </footer>
+
+  <div class="cart-bar" id="cart-bar" hidden>
+    <div class="cart-bar__info">
+      <span class="cart-bar__total" id="cart-bar-total">$ 0,00</span>
+      <span class="cart-bar__count" id="cart-bar-count">0 artículos</span>
+    </div>
+    <a href="/carrito" class="btn btn--primary">Ver carrito</a>
+  </div>
+
+  <script src="/js/cart.js" defer></script>

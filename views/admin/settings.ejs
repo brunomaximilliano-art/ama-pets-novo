@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Tienda' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'configuracion' }) %>
+  <main class="admin-main">
+    <h1>Configuración de la tienda</h1>
+    <form method="post" action="/admin/configuracion" enctype="multipart/form-data" class="admin-form">
+      <label>Nombre de la tienda</label>
+      <input type="text" name="store_name" value="<%= settings.store_name %>" required />
+
+      <label>Frase / descripción corta</label>
+      <input type="text" name="store_tagline" value="<%= settings.store_tagline %>" />
+
+      <label>Número de WhatsApp (con código de país, solo números)</label>
+      <input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number %>" placeholder="59898017328" required />
+
+      <label>Logo actual</label>
+      <img src="<%= settings.logo_path %>" alt="Logo" style="height:80px;border-radius:8px;margin-bottom:10px;display:block;" />
+      <label>Cambiar logo</label>
+      <input type="file" name="logo" accept="image/*" />
+
+      <div class="admin-form__row">
+        <div>
+          <label>Color principal</label>
+          <input type="color" name="primary_color" value="<%= settings.primary_color %>" />
+        </div>
+        <div>
+          <label>Color secundario (texto/títulos)</label>
+          <input type="color" name="secondary_color" value="<%= settings.secondary_color %>" />
+        </div>
+        <div>
+          <label>Color de fondo</label>
+          <input type="color" name="bg_color" value="<%= settings.bg_color %>" />
+        </div>
+      </div>
+
+      <div class="admin-form__actions">
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: 'Productos' }) %>
+</head>
+<body class="admin-body">
+  <%- include('partials/nav', { active: 'productos' }) %>
+  <main class="admin-main">
+    <div class="admin-main__head">
+      <h1>Productos</h1>
+      <a href="/admin/productos/nuevo" class="btn btn--primary">+ Nuevo producto</a>
+    </div>
+
+    <% if (!products.length) { %>
+      <p class="admin-muted">Todavía no cargaste productos.</p>
+    <% } else { %>
+      <table class="admin-table">
+        <thead><tr><th></th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          <% products.forEach(function(p){ %>
+            <tr>
+              <td><a href="/p/<%= p.slug %>" target="_blank" class="admin-thumb-link">Ver</a></td>
+              <td><%= p.name %></td>
+              <td><%= p.category_name || '—' %></td>
+              <td>
+                <%= money(p.promo_price != null ? p.promo_price : p.price) %>
+                <% if (p.promo_price != null) { %><span class="admin-strike"><%= money(p.price) %></span><% } %>
+              </td>
+              <td><span class="tag <%= p.active ? 'tag--ok' : 'tag--off' %>"><%= p.active ? 'Activo' : 'Oculto' %></span></td>
+              <td><a href="/admin/productos/<%= p.id %>/editar">Editar</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </main>
+</body>
+</html>

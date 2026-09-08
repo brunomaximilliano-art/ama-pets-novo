@@ -1,0 +1,16 @@
+<aside class="admin-sidebar">
+  <div class="admin-sidebar__brand">🐾 AMA Pets<br /><small>Panel administrativo</small></div>
+  <nav>
+    <a href="/admin" class="<%= active === 'dashboard' ? 'is-active' : '' %>">Inicio</a>
+    <a href="/admin/productos" class="<%= active === 'productos' ? 'is-active' : '' %>">Productos</a>
+    <a href="/admin/categorias" class="<%= active === 'categorias' ? 'is-active' : '' %>">Categorías</a>
+    <a href="/admin/pedidos" class="<%= active === 'pedidos' ? 'is-active' : '' %>">Pedidos</a>
+    <a href="/admin/entrega" class="<%= active === 'entrega' ? 'is-active' : '' %>">Entrega</a>
+    <a href="/admin/pagos" class="<%= active === 'pagos' ? 'is-active' : '' %>">Pagos</a>
+    <a href="/admin/configuracion" class="<%= active === 'configuracion' ? 'is-active' : '' %>">Tienda</a>
+    <a href="/" target="_blank">Ver sitio ↗</a>
+    <form action="/admin/logout" method="post" style="margin-top:20px;">
+      <button type="submit" class="admin-logout">Cerrar sesión</button>
+    </form>
+  </nav>
+</aside>

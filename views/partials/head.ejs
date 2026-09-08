@@ -1,0 +1,13 @@
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' | ' : '' %><%= settings.store_name %></title>
+<meta name="description" content="<%= settings.store_tagline || settings.store_name %>" />
+<link rel="icon" href="<%= settings.logo_path %>" />
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  :root {
+    --primary: <%= settings.primary_color || '#c96f56' %>;
+    --secondary: <%= settings.secondary_color || '#6b4530' %>;
+    --bg: <%= settings.bg_color || '#fbf4ec' %>;
+  }
+</style>

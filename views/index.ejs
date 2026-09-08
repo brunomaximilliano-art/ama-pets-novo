@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <main class="main">
+    <% if (!sections.length) { %>
+      <div class="empty-state">
+        <p>Todavía no hay productos cargados.</p>
+        <p class="empty-state__muted">Agregalos desde el panel administrativo en <code>/admin</code>.</p>
+      </div>
+    <% } %>
+
+    <% sections.forEach(function(section) { %>
+      <section class="category-section">
+        <div class="category-section__head">
+          <h2><%= section.category.name %></h2>
+          <a href="/c/<%= section.category.slug %>" class="see-all">Ver todo (<%= section.total %>)</a>
+        </div>
+        <div class="product-grid">
+          <% section.products.forEach(function(product) { %>
+            <%- include('partials/product-card', { product: product }) %>
+          <% }) %>
+        </div>
+        <a href="/c/<%= section.category.slug %>" class="see-all see-all--block">Ver todo de <%= section.category.name %></a>
+      </section>
+    <% }) %>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>
