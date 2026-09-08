@@ -29,7 +29,7 @@
       <h2 class="section-title">Forma de entrega</h2>
       <div class="delivery-options">
         <label class="delivery-option">
-          <input type="radio" name="delivery" value="entrega" id="delivery-entrega" />
+          <input type="radio" name="delivery" value="entrega" id="delivery-entrega" autocomplete="off" />
           <span class="delivery-option__icon">🚚</span>
           <span>
             <strong>Entrega</strong>
@@ -41,7 +41,7 @@
 
         <% if (settings.pickup_enabled === '1') { %>
         <label class="delivery-option">
-          <input type="radio" name="delivery" value="retirada" id="delivery-retirada" />
+          <input type="radio" name="delivery" value="retirada" id="delivery-retirada" autocomplete="off" />
           <span class="delivery-option__icon">🏠</span>
           <span>
             <strong>Retirada</strong>
