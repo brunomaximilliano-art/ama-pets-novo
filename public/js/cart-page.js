@@ -11,6 +11,13 @@
   var titleEl = document.getElementById('cart-title');
 
   var couriers = window.__COURIERS__ || [];
+  var modal = document.getElementById('courier-modal');
+
+  // Por las dudas de que el navegador restaure una versión vieja de esta página
+  // (por ejemplo al volver con el botón "atrás", que en varios navegadores
+  // restaura la página tal cual había quedado, incluso con este modal abierto),
+  // lo forzamos cerrado apenas se ejecuta el script.
+  if (modal) modal.hidden = true;
 
   function render() {
     var cart = Cart.getCart();
@@ -32,6 +39,9 @@
         detailsEl.hidden = true;
         summaryEl.hidden = true;
         titleEl.textContent = 'Carrito';
+        // Si el carrito está vacío no tiene sentido elegir transportadora:
+        // nos aseguramos de que el modal esté cerrado siempre en este caso.
+        if (modal) modal.hidden = true;
         return;
       }
 
@@ -126,7 +136,6 @@
   updateCourierChosenDisplay();
 
   // Modal de transportadora
-  var modal = document.getElementById('courier-modal');
   var courierList = document.getElementById('courier-list');
   var selectBtn = document.getElementById('courier-select-btn');
   var selectedCourierId = null;
@@ -152,12 +161,24 @@
     modal.hidden = false;
   }
 
-  document.getElementById('courier-modal-close').addEventListener('click', function () {
+  function closeCourierModal() {
     modal.hidden = true;
     if (!localStorage.getItem(K.COURIER_KEY)) {
       // no eligió transportadora todavía: revertir a "sin selección"
       document.getElementById('delivery-entrega').checked = false;
     }
+  }
+
+  document.getElementById('courier-modal-close').addEventListener('click', closeCourierModal);
+
+  // Tocar el fondo oscuro (fuera del panel) también cierra el modal, y lo
+  // mismo con la tecla Escape — así nunca queda "trabado" en pantalla sin
+  // forma de salir.
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeCourierModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) closeCourierModal();
   });
 
   selectBtn.addEventListener('click', function () {
@@ -186,4 +207,16 @@
 
   document.addEventListener('cart:changed', render);
   render();
+
+  // Si el navegador restaura esta página desde su caché (por ejemplo al volver
+  // con el botón "atrás" del celular), "pageshow" avisa con persisted=true.
+  // En ese caso volvemos a calcular todo desde cero: cerramos el modal (por si
+  // había quedado abierto en la versión cacheada) y re-renderizamos el carrito
+  // con los datos actuales, en vez de mostrar la foto vieja de la página.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) {
+      if (modal) modal.hidden = true;
+      render();
+    }
+  });
 })();
