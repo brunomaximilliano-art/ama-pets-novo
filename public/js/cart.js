@@ -58,11 +58,18 @@
 
   function renderCartBar() {
     var bar = document.getElementById('cart-bar');
-    if (!bar) return;
+    // En la propia página del carrito ya existe su propia barra de total +
+    // "Continuar para finalizar" (#cart-summary). La barra "Ver carrito" es
+    // la que se muestra en las demás páginas para llevarte al carrito —
+    // mostrarla también acá arriba de la de verdad tapaba el botón de
+    // continuar y daba la sensación de que la página se quedaba "trabada".
+    var onCartPage = !!document.getElementById('cart-summary');
+    if (bar && onCartPage) bar.hidden = true;
+
     var cart = getCart();
     var ids = Object.keys(cart);
     if (!ids.length) {
-      bar.hidden = true;
+      if (bar && !onCartPage) bar.hidden = true;
       updateBadge(0);
       return;
     }
@@ -80,14 +87,16 @@
         count += cart[id];
       });
       if (count === 0) {
-        bar.hidden = true;
+        if (bar && !onCartPage) bar.hidden = true;
         updateBadge(0);
         return;
       }
-      bar.hidden = false;
-      document.getElementById('cart-bar-total').textContent = money(total);
-      document.getElementById('cart-bar-count').textContent =
-        count + (count === 1 ? ' artículo' : ' artículos');
+      if (bar && !onCartPage) {
+        bar.hidden = false;
+        document.getElementById('cart-bar-total').textContent = money(total);
+        document.getElementById('cart-bar-count').textContent =
+          count + (count === 1 ? ' artículo' : ' artículos');
+      }
       updateBadge(count);
     });
   }
