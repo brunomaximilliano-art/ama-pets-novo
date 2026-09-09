@@ -1,5 +1,16 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* El carrito, el modal de transportadora, la barra de "agregar al carrito" y
+   varios otros elementos se muestran/ocultan con el atributo HTML "hidden"
+   (elemento.hidden = true/false en el JS). Pero varias clases de acá abajo
+   les fijan un "display" propio (flex, inline-flex, etc.), y una regla de
+   nuestra propia hoja de estilos siempre le gana a la regla "[hidden] {
+   display: none }" del navegador, sin importar cuál sea más específica. Sin
+   esta línea, esos elementos quedaban visibles en pantalla aunque JavaScript
+   los hubiera marcado como "hidden" — esto era la causa real de que el modal
+   apareciera "trabado" sobre la página. Con "!important" nos aseguramos de
+   que esto no vuelva a pasar, sea cual sea el elemento. */
+[hidden] { display: none !important; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg, #fbf4ec);
