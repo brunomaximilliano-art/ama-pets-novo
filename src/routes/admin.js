@@ -390,6 +390,7 @@ router.post('/configuracion', uploadSettings, async (req, res, next) => {
       store_name: b.store_name || 'Mi tienda',
       store_tagline: b.store_tagline || '',
       whatsapp_number: (b.whatsapp_number || '').replace(/[^\d]/g, ''),
+      store_address: b.store_address || '',
       primary_color: b.primary_color || '#c96f56',
       secondary_color: b.secondary_color || '#6b4530',
       bg_color: b.bg_color || '#fbf4ec',
