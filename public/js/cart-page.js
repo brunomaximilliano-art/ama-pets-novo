@@ -30,7 +30,7 @@
       });
 
       var validIds = ids.filter(function (id) {
-        return byId[id];
+        return byId[Cart.parseKey(id).productId];
       });
 
       if (!validIds.length) {
@@ -54,18 +54,29 @@
       itemsEl.innerHTML = '';
       var total = 0;
       validIds.forEach(function (id) {
-        var p = byId[id];
+        var parsed = Cart.parseKey(id);
+        var p = byId[parsed.productId];
         var qty = cart[id];
         var price = Cart.productPrice(p);
         total += price * qty;
         var img = (p.images && p.images[0]) || '/placeholder.svg?text=' + encodeURIComponent(p.name);
+
+        var variantLabel = '';
+        if (parsed.variantId && p.variants) {
+          var v = p.variants.find(function (vv) {
+            return String(vv.id) === String(parsed.variantId);
+          });
+          if (v) variantLabel = v.label;
+        }
 
         var row = document.createElement('div');
         row.className = 'cart-item';
         row.innerHTML =
           '<img src="' + img + '" alt="">' +
           '<div class="cart-item__info">' +
-            '<p class="cart-item__name">' + escapeHtml(p.name) + '</p>' +
+            '<p class="cart-item__name">' + escapeHtml(p.name) +
+              (variantLabel ? ' <span class="cart-item__variant">(' + escapeHtml(variantLabel) + ')</span>' : '') +
+            '</p>' +
             (p.track_stock ? '<p class="cart-item__stock">Disponible: ' + p.stock + '</p>' : '') +
             '<p class="price">' + money(price) + '</p>' +
           '</div>' +
