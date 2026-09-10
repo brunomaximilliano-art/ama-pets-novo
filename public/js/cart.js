@@ -112,47 +112,68 @@
     }
   }
 
-  // Widget "Añadir" / stepper en la página de producto
+  // Widget de cantidad + "Añadir" en la página de producto.
+  // Ahora el flujo es: primero la persona elige cuántas unidades quiere con
+  // el selector (sin tocar el carrito todavía), y recién al tocar "Añadir"
+  // se agregan esas unidades de una sola vez.
   function initProductWidget() {
     var widget = document.getElementById('add-to-cart-widget');
     if (!widget) return;
     var root = document.querySelector('.product-detail');
     var id = String(root.dataset.productId);
     var btnAdd = document.getElementById('btn-add');
-    var stepper = document.getElementById('qty-stepper');
     var qtyValue = document.getElementById('qty-value');
     var btnPlus = document.getElementById('qty-plus');
-    var btnRemove = document.getElementById('qty-remove');
+    var btnMinus = document.getElementById('qty-minus');
+    var inCartNote = document.getElementById('in-cart-note');
 
-    function refresh() {
+    var selectedQty = 1;
+
+    function renderQty() {
+      qtyValue.textContent = selectedQty;
+      btnMinus.disabled = selectedQty <= 1;
+    }
+
+    function renderInCart() {
+      if (!inCartNote) return;
       var cart = getCart();
       var qty = cart[id] || 0;
       if (qty > 0) {
-        btnAdd.hidden = true;
-        stepper.hidden = false;
-        qtyValue.textContent = qty;
+        inCartNote.hidden = false;
+        inCartNote.textContent =
+          'Ya tienes ' + qty + (qty === 1 ? ' unidad' : ' unidades') + ' de este producto en el carrito.';
       } else {
-        btnAdd.hidden = false;
-        stepper.hidden = true;
+        inCartNote.hidden = true;
       }
     }
 
-    btnAdd.addEventListener('click', function () {
-      addToCart(id, 1);
-      refresh();
-    });
     btnPlus.addEventListener('click', function () {
-      addToCart(id, 1);
-      refresh();
+      selectedQty += 1;
+      renderQty();
     });
-    btnRemove.addEventListener('click', function () {
-      var cart = getCart();
-      var qty = (cart[id] || 0) - 1;
-      setQty(id, qty);
-      refresh();
+    btnMinus.addEventListener('click', function () {
+      if (selectedQty > 1) selectedQty -= 1;
+      renderQty();
+    });
+    btnAdd.addEventListener('click', function () {
+      addToCart(id, selectedQty);
+      renderInCart();
+      selectedQty = 1;
+      renderQty();
+
+      var originalText = btnAdd.textContent;
+      btnAdd.textContent = '¡Añadido! ✓';
+      btnAdd.disabled = true;
+      setTimeout(function () {
+        btnAdd.textContent = originalText;
+        btnAdd.disabled = false;
+      }, 1000);
     });
 
-    refresh();
+    document.addEventListener('cart:changed', renderInCart);
+
+    renderQty();
+    renderInCart();
   }
 
   function initCookieBanner() {
@@ -166,6 +187,30 @@
         banner.hidden = true;
       });
     }
+
+    // El carrito tiene su propia barra fija abajo de todo (el resumen con el
+    // botón "Continuar para finalizar", o la barra "Ver carrito"), que ocupa
+    // el mismo lugar que este aviso de cookies y le tapaba el botón por
+    // completo. Lo mantenemos siempre arriba de esa barra, recalculando cada
+    // vez que cambia de tamaño o de visibilidad.
+    function reposition() {
+      if (banner.hidden) return;
+      var summary = document.getElementById('cart-summary');
+      var bar = document.getElementById('cart-bar');
+      var offset = 0;
+      if (summary && !summary.hidden) offset = summary.offsetHeight;
+      else if (bar && !bar.hidden) offset = bar.offsetHeight;
+      banner.style.bottom = offset + 'px';
+    }
+    var watchTargets = [document.getElementById('cart-summary'), document.getElementById('cart-bar')].filter(Boolean);
+    if (watchTargets.length && window.MutationObserver) {
+      var obs = new MutationObserver(reposition);
+      watchTargets.forEach(function (el) {
+        obs.observe(el, { attributes: true, attributeFilter: ['hidden'] });
+      });
+    }
+    reposition();
+    window.addEventListener('resize', reposition);
   }
 
   document.addEventListener('cart:changed', renderCartBar);
