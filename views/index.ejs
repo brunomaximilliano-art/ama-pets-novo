@@ -7,12 +7,15 @@
   <%- include('partials/header') %>
 
   <main class="main">
+    <% var hasHeroText = settings.hero_title || settings.hero_subtitle; %>
     <% if (settings.hero_image) { %>
       <section class="hero hero--photo" style="background-image:url('<%= settings.hero_image %>')">
-        <div class="hero__overlay">
-          <h1 class="hero__title"><%= settings.hero_title || 'Todo para su bienestar' %> <span class="hero__heart">♡</span></h1>
-          <% if (settings.hero_subtitle) { %><p class="hero__subtitle"><%= settings.hero_subtitle %></p><% } %>
-        </div>
+        <% if (hasHeroText) { %>
+          <div class="hero__overlay">
+            <% if (settings.hero_title) { %><h1 class="hero__title"><%= settings.hero_title %> <span class="hero__heart">♡</span></h1><% } %>
+            <% if (settings.hero_subtitle) { %><p class="hero__subtitle"><%= settings.hero_subtitle %></p><% } %>
+          </div>
+        <% } %>
       </section>
     <% } else { %>
       <section class="hero hero--placeholder">
@@ -26,7 +29,7 @@
       <section class="category-icons">
         <% categories.forEach(function(c) { var ic = categoryIcon(c.name); %>
           <a href="/c/<%= c.slug %>" class="category-icons__item">
-            <span class="category-icons__circle" style="background:<%= ic.color %>"><%= ic.emoji %></span>
+            <img src="<%= ic.image %>" alt="" class="category-icons__circle" />
             <span class="category-icons__label"><%= c.name %></span>
           </a>
         <% }) %>
