@@ -14,6 +14,7 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 app.locals.money = require('./utils/format').money;
+app.locals.categoryIcon = require('./utils/format').categoryIcon;
 
 // Archivos del proyecto (CSS, JS del carrito) + archivos subidos por el panel
 // administrativo (fotos, videos, logo), que viven en una carpeta separada

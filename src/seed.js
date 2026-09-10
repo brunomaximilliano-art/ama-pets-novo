@@ -15,13 +15,24 @@ const DEFAULT_SETTINGS = {
   bg_color: '#fbf4ec', // crema del logo
   // Vive en public/, no en storage/uploads/: así el logo siempre está disponible
   // apenas se publica el sitio, sin depender de disco persistente ni de Vercel Blob.
-  logo_path: '/img/logo-default.jpg',
+  // Es un PNG con fondo transparente (el JPG original tenía fondo color crema).
+  logo_path: '/img/logo-default.png',
   country_code: '+598',
+
+  // Portada de la página de inicio. Si el admin no sube una foto propia desde
+  // /admin/configuracion, se muestra un fondo decorativo (no usamos fotos de
+  // stock ni generadas por IA para evitar problemas de derechos de autor).
+  hero_title: 'Todo para su bienestar',
+  hero_subtitle: 'Todo lo que tu mascota necesita, en un solo lugar.',
+  hero_image: '',
+
+  instagram_handle: '@amapets.uy',
+  tiktok_handle: '@amapets.uy',
 
   free_delivery_zone: 'Rivera',
   delivery_note:
     'Los envíos dentro de Rivera son gratis. Los envíos al resto del país quedan a cargo del comprador y se pagan al recibir la encomienda.',
-  pickup_enabled: '1',
+  pickup_enabled: '0',
   pickup_note: 'Retirás tu pedido en nuestro local (a coordinar por WhatsApp).',
   pickup_days: '3 días',
 
@@ -53,13 +64,21 @@ async function seed() {
   const currentLogo = await getSetting('logo_path');
   if (currentLogo === '/uploads/logo/logo.jpg') {
     await setSetting('logo_path', DEFAULT_SETTINGS.logo_path);
+  } else if (currentLogo === '/img/logo-default.jpg') {
+    // Migración: el logo por defecto ahora es un PNG con fondo transparente en
+    // vez del JPG original con fondo color crema. Solo se actualiza si el
+    // sitio todavía usa el logo por defecto (si el admin ya subió uno propio
+    // desde el panel, currentLogo apunta a /uploads/logo/... y no se toca).
+    await setSetting('logo_path', DEFAULT_SETTINGS.logo_path);
   }
 
   // Admin user
-  const adminCount = (await get('SELECT COUNT(*) AS c FROM admin_users')).c;
-  if (adminCount === 0) {
-    const username = process.env.ADMIN_USER || 'admin';
-    const password = process.env.ADMIN_PASSWORD || 'cambiar123';
+  const desiredUsername = process.env.ADMIN_USER;
+  const desiredPassword = process.env.ADMIN_PASSWORD;
+  const admins = await all('SELECT * FROM admin_users');
+  if (admins.length === 0) {
+    const username = desiredUsername || 'admin';
+    const password = desiredPassword || 'cambiar123';
     const hash = bcrypt.hashSync(password, 10);
     await run('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)', [
       username,
@@ -67,6 +86,24 @@ async function seed() {
     ]);
     console.log(`[seed] Usuario administrador creado: ${username} / ${password}`);
     console.log('[seed] IMPORTANTE: cambiá esta contraseña en producción (ver .env)');
+  } else if (desiredUsername && desiredPassword) {
+    // Ya existe un usuario admin (por ejemplo, creado con los valores por
+    // defecto porque el sitio arrancó por primera vez antes de cargar estas
+    // variables en el hosting). Si ADMIN_USER/ADMIN_PASSWORD están
+    // configuradas, nos aseguramos de que ese usuario tenga exactamente esas
+    // credenciales, para que cambiarlas acá siempre termine funcionando.
+    const existing = admins[0];
+    const matches =
+      existing.username === desiredUsername && bcrypt.compareSync(desiredPassword, existing.password_hash);
+    if (!matches) {
+      const hash = bcrypt.hashSync(desiredPassword, 10);
+      await run('UPDATE admin_users SET username = ?, password_hash = ? WHERE id = ?', [
+        desiredUsername,
+        hash,
+        existing.id,
+      ]);
+      console.log(`[seed] Usuario administrador sincronizado con las variables de entorno: ${desiredUsername}`);
+    }
   }
 
   // Couriers
