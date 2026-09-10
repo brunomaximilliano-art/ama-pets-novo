@@ -2,18 +2,21 @@ const { money } = require('./format');
 
 // Arma el texto del pedido y el link de WhatsApp, tal como en el sitio de referencia:
 // el cliente arma el carrito, elige entrega y pago, y el pedido se envía por WhatsApp.
-function buildOrderMessage({ items, deliveryMethod, courierName, address, paymentMethod, cashAmount, customerName, phone, observation, total, storeName }) {
+function buildOrderMessage({ items, deliveryMethod, courierName, address, city, department, paymentMethod, cashAmount, customerName, phone, observation, total, storeName }) {
   const lines = [];
   lines.push(`¡Hola ${storeName}! Quiero hacer este pedido:`);
   lines.push('');
   for (const it of items) {
-    lines.push(`${it.qty}x ${it.name} - ${money(it.price * it.qty)}`);
+    const variant = it.variant ? ` (${it.variant})` : '';
+    lines.push(`${it.qty}x ${it.name}${variant} - ${money(it.price * it.qty)}`);
   }
   lines.push('');
 
   if (deliveryMethod === 'entrega') {
     lines.push(`Forma de entrega: Envío${courierName ? ' (' + courierName + ')' : ''}`);
     if (address) lines.push(`Dirección: ${address}`);
+    if (city) lines.push(`Ciudad: ${city}`);
+    if (department) lines.push(`Departamento: ${department}`);
   } else {
     lines.push('Forma de entrega: Retiro en el local');
   }
