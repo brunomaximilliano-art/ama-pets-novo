@@ -6,7 +6,7 @@
 <body>
   <%- include('partials/header', { showBack: true }) %>
 
-  <main class="main product-detail" data-product-id="<%= product.id %>" data-price="<%= product.promo_price || product.price %>" data-name="<%= product.name.replace(/"/g,'&quot;') %>">
+  <main class="main product-detail" data-product-id="<%= product.id %>" data-price="<%= product.promo_price || product.price %>" data-name="<%= product.name.replace(/"/g,'&quot;') %>" data-variants-enabled="<%= product.variants_enabled ? '1' : '0' %>">
     <% if (category) { %><p class="eyebrow"><%= category.name %></p><% } %>
 
     <div class="product-gallery">
@@ -27,6 +27,26 @@
         <span class="price price--lg"><%= money(product.price) %></span>
       <% } %>
     </p>
+
+    <% if (product.variants_enabled) { %>
+      <div class="variant-picker" id="variant-picker">
+        <p class="field-label">Elegí una opción</p>
+        <% if (variants.length) { %>
+          <div class="variant-options">
+            <% variants.forEach(function(v){ %>
+              <button
+                type="button"
+                class="variant-option"
+                data-variant-id="<%= v.id %>"
+                data-variant-label="<%= v.label.replace(/"/g,'&quot;') %>"
+              ><%= v.label %> <span class="variant-option__stock">(<%= v.stock %> disponible<%= v.stock === 1 ? '' : 's' %>)</span></button>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="variant-picker__empty">No hay stock disponible por el momento.</p>
+        <% } %>
+      </div>
+    <% } %>
 
     <div class="add-to-cart-widget" id="add-to-cart-widget">
       <div class="qty-stepper" id="qty-stepper">
