@@ -46,6 +46,24 @@
         </div>
       </div>
 
+      <div class="admin-checkbox-row">
+        <label><input type="checkbox" name="variants_enabled" value="1" id="variants_enabled" <%= product && product.variants_enabled ? 'checked' : '' %> /> Este producto tiene talles y/o colores</label>
+      </div>
+      <div id="variants-section" <%= !(product && product.variants_enabled) ? 'hidden' : '' %>>
+        <label>Opciones (talle, color, etc.)</label>
+        <p class="admin-hint">Agregá una fila por cada opción (por ejemplo "M", "L", "Rojo") con su stock. Al cliente solo se le muestran las opciones con stock mayor a 0; si el producto no tiene esta casilla activada, no se le muestra nada.</p>
+        <div id="variant-rows">
+          <% (variants && variants.length ? variants : []).forEach(function(v){ %>
+            <div class="variant-row">
+              <input type="text" name="variant_label" placeholder="Ej: M" value="<%= v.label %>" />
+              <input type="number" name="variant_stock" min="0" placeholder="Stock" value="<%= v.stock %>" />
+              <button type="button" class="variant-row__remove" aria-label="Quitar">&times;</button>
+            </div>
+          <% }) %>
+        </div>
+        <button type="button" id="add-variant-row" class="btn btn--secondary btn--sm">+ Agregar opción</button>
+      </div>
+
       <label>Descripción</label>
       <textarea name="description" rows="4"><%= product ? product.description : '' %></textarea>
 
@@ -94,6 +112,39 @@
       document.getElementById('stock_input').disabled = !this.checked;
     });
     document.getElementById('stock_input').disabled = !document.getElementById('track_stock').checked;
+
+    (function () {
+      var checkbox = document.getElementById('variants_enabled');
+      var section = document.getElementById('variants-section');
+      var rows = document.getElementById('variant-rows');
+
+      checkbox.addEventListener('change', function () {
+        section.hidden = !this.checked;
+      });
+
+      function wireRemove(row) {
+        row.querySelector('.variant-row__remove').addEventListener('click', function () {
+          row.remove();
+        });
+      }
+
+      document.querySelectorAll('.variant-row').forEach(wireRemove);
+
+      document.getElementById('add-variant-row').addEventListener('click', function () {
+        var row = document.createElement('div');
+        row.className = 'variant-row';
+        row.innerHTML =
+          '<input type="text" name="variant_label" placeholder="Ej: M" />' +
+          '<input type="number" name="variant_stock" min="0" placeholder="Stock" />' +
+          '<button type="button" class="variant-row__remove" aria-label="Quitar">&times;</button>';
+        wireRemove(row);
+        rows.appendChild(row);
+      });
+
+      if (!rows.children.length && checkbox.checked) {
+        document.getElementById('add-variant-row').click();
+      }
+    })();
   </script>
 </body>
 </html>
