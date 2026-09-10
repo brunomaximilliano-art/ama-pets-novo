@@ -66,8 +66,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 .icon-btn--placeholder { visibility: hidden; }
 .icon-btn__img { width: 22px; height: 22px; object-fit: contain; display: block; }
-.cart-icon { background: var(--primary); }
-.cart-icon .icon-btn__img { width: 20px; height: 20px; }
+.cart-icon { background: transparent; }
+.cart-icon .icon-btn__img { width: 28px; height: 28px; }
 .cart-badge {
   position: absolute;
   top: -4px;
@@ -184,6 +184,7 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 700; font-size: 15px;
 }
 .btn--primary { background: var(--primary); color: #fff; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn--block { width: 100%; }
 .btn--whatsapp { background: #25D366; color: #fff; }
 .link-btn { background: none; border: none; color: var(--primary); font-weight: 600; font-size: 13px; text-decoration: underline; }
@@ -250,6 +251,21 @@ textarea, input[type=text], input[type=tel], input[type=number] {
 .phone-field { display: flex; gap: 8px; }
 .phone-prefix { background: #f6ece0; border-radius: 10px; padding: 10px 12px; font-weight: 600; color: var(--secondary); }
 .form-error { color: #c0392b; font-size: 13px; margin-top: 10px; }
+.field-row { display: flex; gap: 12px; }
+.field-row > div { flex: 1; min-width: 0; }
+
+/* Talles / colores del producto */
+.variant-picker { margin-bottom: 18px; }
+.variant-picker__empty { font-size: 13px; color: #a13a3a; }
+.variant-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.variant-option {
+  background: #fff; border: 1px solid #e7d7c4; border-radius: 999px; padding: 8px 16px;
+  font-size: 13px; font-weight: 600; color: #4a382d; cursor: pointer;
+}
+.variant-option.is-selected { border-color: var(--primary); background: #fff8f2; color: var(--primary); }
+.variant-option__stock { font-weight: 400; color: #8a7669; }
+.variant-option.is-selected .variant-option__stock { color: var(--primary); }
+.cart-item__variant { font-weight: 400; color: #8a7669; }
 
 /* Footer */
 .site-footer { text-align: center; font-size: 12px; color: #a99; padding: 30px 16px 10px; }
