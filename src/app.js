@@ -4,7 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 const { seed } = require('./seed');
-const { UPLOAD_ROOT } = require('./lib/storage');
+const { UPLOAD_ROOT, useBlob, serveBlobFile } = require('./lib/storage');
 const publicRoutes = require('./routes/public');
 const adminRoutes = require('./routes/admin');
 const apiRoutes = require('./routes/api');
@@ -21,6 +21,21 @@ app.locals.categoryIcon = require('./utils/format').categoryIcon;
 // (STORAGE_DIR/uploads) para poder montar ahí un único volumen persistente.
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/uploads', express.static(UPLOAD_ROOT));
+
+// En Vercel, las fotos/videos subidos por el panel van a un "Blob Store"
+// privado (ver src/lib/storage.js): el navegador no tiene el token para leer
+// esos archivos directo, así que esta ruta se los pide a Vercel Blob con el
+// token puesto y se los entrega tal cual, como si fueran un archivo propio.
+app.get('/media/*', async (req, res, next) => {
+  if (!useBlob) return res.status(404).send('Archivo no encontrado');
+  try {
+    const pathname = req.params[0];
+    await serveBlobFile(pathname, res);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use(cookieParser(process.env.COOKIE_SECRET || 'dev-secret-cambiar'));
 
 // Se asegura de que la base esté sembrada con los datos iniciales antes de
