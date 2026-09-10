@@ -25,17 +25,6 @@
       </section>
     <% } %>
 
-    <% if (categories.length) { %>
-      <section class="category-icons">
-        <% categories.forEach(function(c) { var ic = categoryIcon(c.name); %>
-          <a href="/c/<%= c.slug %>" class="category-icons__item">
-            <img src="<%= ic.image %>" alt="" class="category-icons__circle" />
-            <span class="category-icons__label"><%= c.name %></span>
-          </a>
-        <% }) %>
-      </section>
-    <% } %>
-
     <% if (!sections.length) { %>
       <div class="empty-state">
         <p>Todavía no hay productos cargados.</p>
