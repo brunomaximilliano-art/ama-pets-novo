@@ -96,6 +96,35 @@ router.get('/p/:slug', async (req, res, next) => {
   }
 });
 
+// Buscador: busca por nombre en todos los productos activos de todas las
+// categorías (no solo en la que se esté mirando).
+router.get('/buscar', async (req, res, next) => {
+  try {
+    const { settings, categories } = await loadCommon();
+    const q = (req.query.q || '').toString().trim();
+
+    let products = [];
+    if (q) {
+      const rows = await db.all(
+        `SELECT * FROM products WHERE active = 1 AND name LIKE ?
+         ORDER BY sort_order ASC, id DESC`,
+        [`%${q}%`]
+      );
+      for (const p of rows) products.push({ ...p, images: await getImages(p.id) });
+    }
+
+    res.render('search', {
+      settings,
+      categories,
+      products,
+      query: q,
+      activeCategory: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Carrito (el contenido real lo arma el JS del cliente a partir de localStorage)
 router.get('/carrito', async (req, res, next) => {
   try {

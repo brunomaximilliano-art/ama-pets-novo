@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { requireAdmin, logIn, logOut } = require('../middleware/auth');
-const { uploadLogo, uploadProductMedia } = require('../middleware/upload');
+const { uploadLogo, uploadProductMedia, uploadSettings } = require('../middleware/upload');
 const { saveBuffer, deleteFile } = require('../lib/storage');
 const { slugify } = require('../utils/format');
 
@@ -297,9 +297,6 @@ router.post('/entrega/general', async (req, res, next) => {
     await db.setSettings({
       free_delivery_zone: b.free_delivery_zone || '',
       delivery_note: b.delivery_note || '',
-      pickup_enabled: b.pickup_enabled ? '1' : '0',
-      pickup_note: b.pickup_note || '',
-      pickup_days: b.pickup_days || '',
     });
     res.redirect('/admin/entrega');
   } catch (err) {
@@ -385,9 +382,10 @@ router.get('/configuracion', async (req, res, next) => {
   }
 });
 
-router.post('/configuracion', uploadLogo.single('logo'), async (req, res, next) => {
+router.post('/configuracion', uploadSettings, async (req, res, next) => {
   try {
     const b = req.body;
+    const files = req.files || {};
     const update = {
       store_name: b.store_name || 'Mi tienda',
       store_tagline: b.store_tagline || '',
@@ -395,9 +393,21 @@ router.post('/configuracion', uploadLogo.single('logo'), async (req, res, next) 
       primary_color: b.primary_color || '#c96f56',
       secondary_color: b.secondary_color || '#6b4530',
       bg_color: b.bg_color || '#fbf4ec',
+      hero_title: b.hero_title || '',
+      hero_subtitle: b.hero_subtitle || '',
+      instagram_handle: b.instagram_handle || '',
+      tiktok_handle: b.tiktok_handle || '',
     };
-    if (req.file) {
-      update.logo_path = await saveBuffer(req.file.buffer, 'logo', req.file.originalname, req.file.mimetype);
+    if (files.logo && files.logo[0]) {
+      update.logo_path = await saveBuffer(files.logo[0].buffer, 'logo', files.logo[0].originalname, files.logo[0].mimetype);
+    }
+    if (files.hero_image && files.hero_image[0]) {
+      update.hero_image = await saveBuffer(
+        files.hero_image[0].buffer,
+        'hero',
+        files.hero_image[0].originalname,
+        files.hero_image[0].mimetype
+      );
     }
     await db.setSettings(update);
     res.redirect('/admin/configuracion');
