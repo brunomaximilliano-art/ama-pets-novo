@@ -1,4 +1,30 @@
   <footer class="site-footer">
+    <div class="site-footer__social">
+      <a
+        class="social-btn social-btn--whatsapp"
+        href="https://wa.me/<%= settings.whatsapp_number %>"
+        target="_blank"
+        rel="noopener"
+        aria-label="WhatsApp"
+      >💬</a>
+      <a
+        class="social-btn social-btn--instagram"
+        href="https://instagram.com/<%= (settings.instagram_handle || '@amapets.uy').replace(/^@/, '') %>"
+        target="_blank"
+        rel="noopener"
+        aria-label="Instagram"
+      >📷</a>
+      <a
+        class="social-btn social-btn--tiktok"
+        href="https://www.tiktok.com/@<%= (settings.tiktok_handle || '@amapets.uy').replace(/^@/, '') %>"
+        target="_blank"
+        rel="noopener"
+        aria-label="TikTok"
+      >🎵</a>
+    </div>
+    <p class="site-footer__handles">
+      WhatsApp · Instagram <%= settings.instagram_handle || '@amapets.uy' %> · TikTok <%= settings.tiktok_handle || '@amapets.uy' %>
+    </p>
     <p>Catálogo online de <strong><%= settings.store_name %></strong></p>
     <p class="site-footer__muted">Todos los productos y ofertas de este catálogo son responsabilidad de <%= settings.store_name %>.</p>
   </footer>
@@ -12,3 +38,4 @@
   </div>
 
   <script src="/js/cart.js" defer></script>
+  <script src="/js/site.js" defer></script>

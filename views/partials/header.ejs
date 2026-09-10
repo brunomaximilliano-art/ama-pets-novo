@@ -8,15 +8,30 @@
     <% if (typeof showBack !== 'undefined' && showBack) { %>
       <a href="javascript:history.back()" class="icon-btn" aria-label="Volver">&#8592;</a>
     <% } else { %>
-      <span class="icon-btn icon-btn--placeholder"></span>
+      <button type="button" class="icon-btn" id="menu-toggle" aria-label="Abrir menú">&#9776;</button>
     <% } %>
     <a href="/" class="site-logo">
       <img src="<%= settings.logo_path %>" alt="<%= settings.store_name %>" />
     </a>
-    <a href="/carrito" class="icon-btn cart-icon" aria-label="Carrito">
-      🛒<span class="cart-badge" id="cart-badge" hidden>0</span>
-    </a>
+    <div class="site-header__icons">
+      <button type="button" class="icon-btn" id="search-toggle" aria-label="Buscar">&#128269;</button>
+      <a href="/carrito" class="icon-btn cart-icon" aria-label="Carrito">
+        🛒<span class="cart-badge" id="cart-badge" hidden>0</span>
+      </a>
+    </div>
   </div>
+
+  <form class="site-search" id="site-search" action="/buscar" method="get" hidden>
+    <input
+      type="search"
+      name="q"
+      id="site-search-input"
+      placeholder="Buscar en toda la tienda..."
+      autocomplete="off"
+      value="<%= typeof query !== 'undefined' && query ? query : '' %>"
+    />
+    <button type="submit" class="icon-btn" aria-label="Buscar">&#128269;</button>
+  </form>
 
   <nav class="category-nav">
     <a href="/" class="chip <%= !activeCategory ? 'chip--active' : '' %>">Inicio</a>
@@ -25,3 +40,31 @@
     <% }) %>
   </nav>
 </header>
+
+<!-- Menú lateral (hambúrguer): la misma navegación por categorías que los chips
+     de arriba, pero en vertical y con íconos — se pidió mantener ambos. -->
+<div class="nav-drawer-backdrop" id="nav-drawer-backdrop" hidden></div>
+<nav class="nav-drawer" id="nav-drawer" hidden aria-label="Menú de categorías">
+  <div class="nav-drawer__head">
+    <span class="nav-drawer__title"><%= settings.store_name %></span>
+    <button type="button" class="icon-btn" id="nav-drawer-close" aria-label="Cerrar menú">&times;</button>
+  </div>
+  <div class="nav-drawer__links">
+    <a href="/" class="nav-drawer__link">
+      <span class="nav-drawer__dot" style="background:#e0c097">🏠</span> Inicio
+    </a>
+    <% categories.forEach(function(c) { var ic = categoryIcon(c.name); %>
+      <a href="/c/<%= c.slug %>" class="nav-drawer__link">
+        <span class="nav-drawer__dot" style="background:<%= ic.color %>"><%= ic.emoji %></span> <%= c.name %>
+      </a>
+    <% }) %>
+  </div>
+  <div class="nav-drawer__foot">
+    <a
+      href="https://wa.me/<%= settings.whatsapp_number %>"
+      target="_blank"
+      rel="noopener"
+      class="nav-drawer__whatsapp"
+    >💬 Escribinos por WhatsApp</a>
+  </div>
+</nav>
