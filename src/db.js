@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS products (
   video_url TEXT DEFAULT '',
   active INTEGER NOT NULL DEFAULT 1,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  variants_enabled INTEGER NOT NULL DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -60,6 +61,18 @@ CREATE TABLE IF NOT EXISTS product_images (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   path TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+-- Talles/colores opcionales por producto. El admin puede activarlos para un
+-- producto puntual (no depende de la categoría) y escribir cualquier
+-- etiqueta que quiera (M, L, Rojo, etc.), cada una con su propio stock. Al
+-- cliente solo se le muestran las etiquetas con stock > 0.
+CREATE TABLE IF NOT EXISTS product_variants (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  label TEXT NOT NULL,
+  stock INTEGER NOT NULL DEFAULT 0,
   sort_order INTEGER NOT NULL DEFAULT 0
 );
 
@@ -83,6 +96,8 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_name TEXT,
   phone TEXT,
   address TEXT,
+  city TEXT,
+  department TEXT,
   delivery_method TEXT,
   courier_name TEXT,
   payment_method TEXT,
@@ -94,9 +109,33 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 `;
 
+// Columnas agregadas a tablas que ya existían desde antes de que existiera esta
+// funcionalidad. "CREATE TABLE IF NOT EXISTS" de arriba no las agrega a una
+// tabla que un sitio ya tenía creada, así que acá las sumamos con ALTER TABLE.
+// Si la columna ya existe (sitio nuevo, creado con el esquema de arriba, o esta
+// migración ya se corrió antes) SQLite tira error "duplicate column name", que
+// simplemente ignoramos: es la forma de que esto sea seguro correrlo siempre.
+const COLUMN_MIGRATIONS = [
+  { sql: 'ALTER TABLE products ADD COLUMN variants_enabled INTEGER NOT NULL DEFAULT 0' },
+  { sql: 'ALTER TABLE orders ADD COLUMN city TEXT' },
+  { sql: 'ALTER TABLE orders ADD COLUMN department TEXT' },
+];
+
+async function migrateColumns() {
+  for (const m of COLUMN_MIGRATIONS) {
+    try {
+      await client.execute(m.sql);
+    } catch (e) {
+      // Columna ya existente (u otro motivo no crítico): seguimos sin cortar el arranque.
+    }
+  }
+}
+
 let readyPromise = null;
 function ready() {
-  if (!readyPromise) readyPromise = client.executeMultiple(SCHEMA);
+  if (!readyPromise) {
+    readyPromise = client.executeMultiple(SCHEMA).then(() => migrateColumns());
+  }
   return readyPromise;
 }
 
