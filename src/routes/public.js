@@ -83,12 +83,22 @@ router.get('/p/:slug', async (req, res, next) => {
     const category = categories.find((c) => c.id === product.category_id);
     const images = await getImages(product.id);
 
+    // Solo se le muestran al cliente las opciones que tienen stock disponible.
+    let variants = [];
+    if (product.variants_enabled) {
+      variants = await db.all(
+        'SELECT id, label, stock FROM product_variants WHERE product_id = ? AND stock > 0 ORDER BY sort_order ASC, id ASC',
+        [product.id]
+      );
+    }
+
     res.render('product', {
       settings,
       categories,
       product,
       images,
       category,
+      variants,
       activeCategory: category ? category.slug : null,
     });
   } catch (err) {
