@@ -11,6 +11,8 @@
   if (delivery === 'entrega') {
     document.getElementById('address-field').hidden = false;
     document.getElementById('address').required = true;
+    document.getElementById('city').required = true;
+    document.getElementById('department').required = true;
   }
 
   var cartItemsCache = [];
@@ -32,12 +34,20 @@
       cartItemsCache = [];
       var count = 0;
       ids.forEach(function (id) {
-        var p = byId[id];
+        var parsed = Cart.parseKey(id);
+        var p = byId[parsed.productId];
         if (!p) return;
         var price = Cart.productPrice(p);
         subtotal += price * cart[id];
         count += cart[id];
-        cartItemsCache.push({ id: p.id, name: p.name, price: price, qty: cart[id] });
+        var variantLabel = '';
+        if (parsed.variantId && p.variants) {
+          var v = p.variants.find(function (vv) {
+            return String(vv.id) === String(parsed.variantId);
+          });
+          if (v) variantLabel = v.label;
+        }
+        cartItemsCache.push({ id: p.id, name: p.name, price: price, qty: cart[id], variant: variantLabel });
       });
 
       document.getElementById('summary-count').textContent =
@@ -106,6 +116,8 @@
       deliveryMethod: delivery,
       courierName: courier ? courier.name : '',
       address: document.getElementById('address') ? document.getElementById('address').value : '',
+      city: document.getElementById('city') ? document.getElementById('city').value : '',
+      department: document.getElementById('department') ? document.getElementById('department').value : '',
       paymentMethod: method,
       cashAmount: method === 'efectivo' ? Number(cashAmountInput.value) || 0 : 0,
       customerName: document.getElementById('customerName').value,
