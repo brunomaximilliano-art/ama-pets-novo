@@ -7,6 +7,9 @@
   <%- include('partials/nav', { active: 'configuracion' }) %>
   <main class="admin-main">
     <h1>Configuración de la tienda</h1>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="admin-error" style="margin-bottom:16px;"><%= error %></p>
+    <% } %>
     <form method="post" action="/admin/configuracion" enctype="multipart/form-data" class="admin-form">
       <label>Nombre de la tienda</label>
       <input type="text" name="store_name" value="<%= settings.store_name %>" required />
@@ -67,5 +70,6 @@
       </div>
     </form>
   </main>
+  <script src="/js/image-compress.js"></script>
 </body>
 </html>
