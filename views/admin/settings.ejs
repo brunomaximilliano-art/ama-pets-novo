@@ -17,6 +17,9 @@
       <label>Número de WhatsApp (con código de país, solo números)</label>
       <input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number %>" placeholder="59898017328" required />
 
+      <label>Dirección (se muestra en "Entrá en contacto")</label>
+      <input type="text" name="store_address" value="<%= settings.store_address %>" placeholder="Ej: Barrio Cerro Marconi" />
+
       <label>Logo actual</label>
       <img src="<%= settings.logo_path %>" alt="Logo" style="height:80px;border-radius:8px;margin-bottom:10px;display:block;background:#f6ece0;padding:6px;" />
       <label>Cambiar logo</label>
@@ -29,7 +32,7 @@
       <input type="text" name="tiktok_handle" value="<%= settings.tiktok_handle %>" placeholder="@amapets.uy" />
 
       <h2 style="margin-top:26px;">Portada de la página de inicio</h2>
-      <p class="admin-hint">Si no subís una foto, se muestra un fondo decorativo en su lugar.</p>
+      <p class="admin-hint">Si dejás el título y subtítulo vacíos, se muestra la foto sola (útil cuando la foto ya tiene su propio texto, como la que viene de fábrica).</p>
 
       <label>Título de la portada</label>
       <input type="text" name="hero_title" value="<%= settings.hero_title %>" placeholder="Todo para su bienestar" />
