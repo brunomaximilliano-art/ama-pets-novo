@@ -50,4 +50,21 @@ const uploadProductMedia = multer({
   { name: 'video', maxCount: 1 },
 ]);
 
-module.exports = { uploadProductImages, uploadLogo, uploadVideo, uploadProductMedia };
+// Para el formulario de "Configuración de la tienda", que puede subir el logo
+// y/o la foto de portada (hero) de la página de inicio en el mismo envío.
+const uploadSettings = multer({
+  storage: memory,
+  fileFilter: imageFilter,
+  limits: { fileSize: 4 * 1024 * 1024, files: 2 },
+}).fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'hero_image', maxCount: 1 },
+]);
+
+module.exports = {
+  uploadProductImages,
+  uploadLogo,
+  uploadVideo,
+  uploadProductMedia,
+  uploadSettings,
+};
