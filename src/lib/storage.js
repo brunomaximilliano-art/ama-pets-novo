@@ -46,13 +46,21 @@ async function saveBuffer(buffer, folder, originalName, mimetype) {
 
   if (useBlob) {
     const { put } = require('@vercel/blob');
-    const result = await put(`${folder}/${filename}`, buffer, {
-      access: 'public',
+    const pathname = `${folder}/${filename}`;
+    // Los "Blob Store" que crea Vercel hoy en día son privados: para leer un
+    // archivo hace falta mandar el token, así que un <img src="..."> apuntando
+    // directo a Vercel Blob no funciona (el navegador no manda ese token).
+    // Por eso acá guardamos "access: private" y devolvemos una ruta propia
+    // del sitio (/media/...) que el servidor resuelve pidiéndole el archivo a
+    // Vercel Blob con el token puesto, y se lo entrega al navegador como si
+    // fuera un archivo cualquiera (ver la ruta GET /media/* en src/app.js).
+    await put(pathname, buffer, {
+      access: 'private',
       contentType: mimetype,
       addRandomSuffix: false,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
-    return result.url;
+    return `/media/${pathname}`;
   }
 
   const dir = path.join(UPLOAD_ROOT, folder);
@@ -61,11 +69,21 @@ async function saveBuffer(buffer, folder, originalName, mimetype) {
   return `/uploads/${folder}/${filename}`;
 }
 
-// Elimina un archivo guardado previamente (acepta tanto una ruta local "/uploads/..."
-// como una URL completa de Vercel Blob).
+// Elimina un archivo guardado previamente (acepta una ruta local "/uploads/...",
+// la ruta propia "/media/..." que usamos para los archivos en Vercel Blob, o
+// (por compatibilidad con datos guardados antes de este cambio) una URL
+// completa de Vercel Blob).
 async function deleteFile(pathOrUrl) {
   if (!pathOrUrl) return;
   try {
+    if (pathOrUrl.startsWith('/media/')) {
+      if (useBlob) {
+        const { del } = require('@vercel/blob');
+        const pathname = pathOrUrl.replace(/^\/media\//, '');
+        await del(pathname, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      }
+      return;
+    }
     if (/^https?:\/\//.test(pathOrUrl)) {
       if (useBlob) {
         const { del } = require('@vercel/blob');
@@ -80,4 +98,26 @@ async function deleteFile(pathOrUrl) {
   }
 }
 
-module.exports = { saveBuffer, deleteFile, useBlob, STORAGE_DIR, UPLOAD_ROOT };
+// Le pide a Vercel Blob el contenido de un archivo privado (usando el token) y
+// lo manda tal cual a la respuesta HTTP, como si el archivo estuviera en
+// nuestro propio servidor. Lo usa la ruta GET /media/* en src/app.js.
+async function serveBlobFile(pathname, res) {
+  const { get } = require('@vercel/blob');
+  const result = await get(pathname, {
+    access: 'private',
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+  if (!result || !result.stream) {
+    res.status(404).send('Archivo no encontrado');
+    return;
+  }
+  res.setHeader('Content-Type', (result.blob && result.blob.contentType) || 'application/octet-stream');
+  // El nombre de archivo incluye fecha + un código al azar (ver safeFilename),
+  // así que nunca se reutiliza el mismo nombre para un contenido distinto: se
+  // puede cachear "para siempre" sin miedo a mostrar una versión vieja.
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  const { Readable } = require('stream');
+  Readable.fromWeb(result.stream).pipe(res);
+}
+
+module.exports = { saveBuffer, deleteFile, serveBlobFile, useBlob, STORAGE_DIR, UPLOAD_ROOT };
