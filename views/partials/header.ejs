@@ -12,24 +12,15 @@
   </a>
 
   <div class="side-card">
-    <h3 class="side-card__title">Entrá en contacto</h3>
+    <h3 class="side-card__title">Contacto</h3>
     <a class="side-card__row" href="https://wa.me/<%= settings.whatsapp_number %>" target="_blank" rel="noopener">
       <img src="/img/icons/icon-whatsapp.png" alt="" class="side-card__icon" /> +<%= settings.whatsapp_number %>
-    </a>
-    <a class="side-card__row" href="tel:+<%= settings.whatsapp_number %>">
-      <span class="side-card__icon side-card__icon--emoji">📞</span> +<%= settings.whatsapp_number %>
     </a>
     <% if (settings.store_address) { %>
       <p class="side-card__row side-card__row--text">
         <span class="side-card__icon side-card__icon--emoji">📍</span> <%= settings.store_address %>
       </p>
     <% } %>
-  </div>
-
-  <div class="side-card">
-    <h3 class="side-card__title">Opciones de entrega</h3>
-    <p class="side-card__delivery">🚚 <strong>Entrega</strong></p>
-    <p class="side-card__delivery-note"><%= settings.delivery_note %></p>
   </div>
 
   <div class="side-card side-card--categories">
@@ -42,6 +33,12 @@
         <img src="<%= ic.image %>" alt="" class="side-card__cat-icon" /> <%= c.name %>
       </a>
     <% }) %>
+  </div>
+
+  <div class="side-card">
+    <h3 class="side-card__title">Opciones de entrega</h3>
+    <p class="side-card__delivery">🚚 <strong>Entrega</strong></p>
+    <p class="side-card__delivery-note"><%= settings.delivery_note %></p>
   </div>
 </aside>
 
@@ -109,7 +106,7 @@
     <% }) %>
   </div>
   <div class="nav-drawer__foot">
-    <a
+    
       href="https://wa.me/<%= settings.whatsapp_number %>"
       target="_blank"
       rel="noopener"
