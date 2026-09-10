@@ -461,7 +461,19 @@ router.post('/configuracion', (req, res, next) => {
       await db.setSettings(update);
       res.redirect('/admin/configuracion');
     } catch (err) {
-      next(err);
+      // Antes esto caía en la pantalla genérica de error, que no dice nada de
+      // qué pasó en realidad. Mostramos el detalle acá mismo (esta pantalla
+      // solo la ve el admin, no los clientes) para poder ver de una el motivo
+      // real en vez de tener que ir a buscar logs de Vercel.
+      console.error('Error en POST /admin/configuracion:', err);
+      try {
+        const settings = await db.getSettings();
+        return res
+          .status(500)
+          .render('admin/settings', { settings, error: 'No se pudo guardar: ' + (err && err.message ? err.message : 'error desconocido') });
+      } catch (err2) {
+        next(err2);
+      }
     }
   });
 });
