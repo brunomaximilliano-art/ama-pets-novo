@@ -3,6 +3,48 @@
   <button type="button" id="cookie-accept">Aceptar y cerrar</button>
 </div>
 
+<!-- Menú fijo de escritorio/laptop: queda siempre visible al costado en
+     pantallas grandes (no hace falta tocar el hambúrguer ahí). En celular
+     queda oculto del todo — ahí se usa el ☰ + la gaveta lateral de abajo. -->
+<aside class="side-sidebar" id="side-sidebar">
+  <a href="/" class="side-sidebar__logo">
+    <img src="<%= settings.logo_path %>" alt="<%= settings.store_name %>" />
+  </a>
+
+  <div class="side-card">
+    <h3 class="side-card__title">Entrá en contacto</h3>
+    <a class="side-card__row" href="https://wa.me/<%= settings.whatsapp_number %>" target="_blank" rel="noopener">
+      <img src="/img/icons/icon-whatsapp.png" alt="" class="side-card__icon" /> +<%= settings.whatsapp_number %>
+    </a>
+    <a class="side-card__row" href="tel:+<%= settings.whatsapp_number %>">
+      <span class="side-card__icon side-card__icon--emoji">📞</span> +<%= settings.whatsapp_number %>
+    </a>
+    <% if (settings.store_address) { %>
+      <p class="side-card__row side-card__row--text">
+        <span class="side-card__icon side-card__icon--emoji">📍</span> <%= settings.store_address %>
+      </p>
+    <% } %>
+  </div>
+
+  <div class="side-card">
+    <h3 class="side-card__title">Opciones de entrega</h3>
+    <p class="side-card__delivery">🚚 <strong>Entrega</strong></p>
+    <p class="side-card__delivery-note"><%= settings.delivery_note %></p>
+  </div>
+
+  <div class="side-card side-card--categories">
+    <h3 class="side-card__title">Categorías</h3>
+    <a href="/" class="side-card__cat <%= !activeCategory ? 'is-active' : '' %>">
+      <span class="side-card__cat-icon side-card__cat-icon--home">🏠</span> Inicio
+    </a>
+    <% categories.forEach(function(c) { var ic = categoryIcon(c.name); %>
+      <a href="/c/<%= c.slug %>" class="side-card__cat <%= activeCategory === c.slug ? 'is-active' : '' %>">
+        <img src="<%= ic.image %>" alt="" class="side-card__cat-icon" /> <%= c.name %>
+      </a>
+    <% }) %>
+  </div>
+</aside>
+
 <header class="site-header">
   <div class="site-header__top">
     <% if (typeof showBack !== 'undefined' && showBack) { %>
@@ -14,9 +56,12 @@
       <img src="<%= settings.logo_path %>" alt="<%= settings.store_name %>" />
     </a>
     <div class="site-header__icons">
-      <button type="button" class="icon-btn" id="search-toggle" aria-label="Buscar">&#128269;</button>
+      <button type="button" class="icon-btn" id="search-toggle" aria-label="Buscar">
+        <img src="/img/icons/icon-search.png" alt="" class="icon-btn__img" />
+      </button>
       <a href="/carrito" class="icon-btn cart-icon" aria-label="Carrito">
-        🛒<span class="cart-badge" id="cart-badge" hidden>0</span>
+        <img src="/img/icons/icon-cart.png" alt="" class="icon-btn__img" />
+        <span class="cart-badge" id="cart-badge" hidden>0</span>
       </a>
     </div>
   </div>
@@ -30,7 +75,9 @@
       autocomplete="off"
       value="<%= typeof query !== 'undefined' && query ? query : '' %>"
     />
-    <button type="submit" class="icon-btn" aria-label="Buscar">&#128269;</button>
+    <button type="submit" class="icon-btn" aria-label="Buscar">
+      <img src="/img/icons/icon-search.png" alt="" class="icon-btn__img" />
+    </button>
   </form>
 
   <nav class="category-nav">
@@ -41,8 +88,10 @@
   </nav>
 </header>
 
-<!-- Menú lateral (hambúrguer): la misma navegación por categorías que los chips
-     de arriba, pero en vertical y con íconos — se pidió mantener ambos. -->
+<!-- Menú lateral (hambúrguer) para celular: la misma navegación por
+     categorías que el menú fijo de arriba, pero como gaveta que se abre —
+     en pantallas grandes no hace falta porque el menú de al lado ya está
+     siempre visible. -->
 <div class="nav-drawer-backdrop" id="nav-drawer-backdrop" hidden></div>
 <nav class="nav-drawer" id="nav-drawer" hidden aria-label="Menú de categorías">
   <div class="nav-drawer__head">
@@ -51,11 +100,11 @@
   </div>
   <div class="nav-drawer__links">
     <a href="/" class="nav-drawer__link">
-      <span class="nav-drawer__dot" style="background:#e0c097">🏠</span> Inicio
+      <span class="nav-drawer__dot">🏠</span> Inicio
     </a>
     <% categories.forEach(function(c) { var ic = categoryIcon(c.name); %>
       <a href="/c/<%= c.slug %>" class="nav-drawer__link">
-        <span class="nav-drawer__dot" style="background:<%= ic.color %>"><%= ic.emoji %></span> <%= c.name %>
+        <img src="<%= ic.image %>" alt="" class="nav-drawer__dot nav-drawer__dot--img" /> <%= c.name %>
       </a>
     <% }) %>
   </div>
@@ -65,6 +114,8 @@
       target="_blank"
       rel="noopener"
       class="nav-drawer__whatsapp"
-    >💬 Escribinos por WhatsApp</a>
+    >
+      <img src="/img/icons/icon-whatsapp.png" alt="" class="nav-drawer__whatsapp-icon" /> Escribinos por WhatsApp
+    </a>
   </div>
 </nav>

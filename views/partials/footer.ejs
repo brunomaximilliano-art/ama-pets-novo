@@ -1,26 +1,26 @@
   <footer class="site-footer">
     <div class="site-footer__social">
       <a
-        class="social-btn social-btn--whatsapp"
+        class="social-btn"
         href="https://wa.me/<%= settings.whatsapp_number %>"
         target="_blank"
         rel="noopener"
         aria-label="WhatsApp"
-      >💬</a>
+      ><img src="/img/icons/icon-whatsapp.png" alt="WhatsApp" /></a>
       <a
-        class="social-btn social-btn--instagram"
+        class="social-btn"
         href="https://instagram.com/<%= (settings.instagram_handle || '@amapets.uy').replace(/^@/, '') %>"
         target="_blank"
         rel="noopener"
         aria-label="Instagram"
-      >📷</a>
+      ><img src="/img/icons/icon-instagram.png" alt="Instagram" /></a>
       <a
-        class="social-btn social-btn--tiktok"
+        class="social-btn"
         href="https://www.tiktok.com/@<%= (settings.tiktok_handle || '@amapets.uy').replace(/^@/, '') %>"
         target="_blank"
         rel="noopener"
         aria-label="TikTok"
-      >🎵</a>
+      ><img src="/img/icons/icon-tiktok.png" alt="TikTok" /></a>
     </div>
     <p class="site-footer__handles">
       WhatsApp · Instagram <%= settings.instagram_handle || '@amapets.uy' %> · TikTok <%= settings.tiktok_handle || '@amapets.uy' %>

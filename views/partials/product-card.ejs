@@ -9,9 +9,6 @@
     <img src="<%= img %>" alt="<%= product.name %>" loading="lazy" />
   </div>
   <div class="product-card__body">
-    <% if (product.track_stock) { %>
-      <span class="product-card__stock">Disponible: <%= product.stock %></span>
-    <% } %>
     <p class="product-card__name"><%= product.name %></p>
     <p class="product-card__price">
       <% if (hasPromo) { %>
