@@ -19,12 +19,15 @@ const DEFAULT_SETTINGS = {
   logo_path: '/img/logo-default.png',
   country_code: '+598',
 
-  // Portada de la página de inicio. Si el admin no sube una foto propia desde
-  // /admin/configuracion, se muestra un fondo decorativo (no usamos fotos de
-  // stock ni generadas por IA para evitar problemas de derechos de autor).
-  hero_title: 'Todo para su bienestar',
-  hero_subtitle: 'Todo lo que tu mascota necesita, en un solo lugar.',
-  hero_image: '',
+  // Portada de la página de inicio. Viene de fábrica con la foto que envió la
+  // tienda (que ya tiene su propio texto incorporado a la imagen, por eso no
+  // agregamos otro título encima). El admin puede reemplazarla, o escribir un
+  // título/subtítulo propio, desde /admin/configuración.
+  hero_title: '',
+  hero_subtitle: '',
+  hero_image: '/img/hero-default.jpg',
+
+  store_address: '',
 
   instagram_handle: '@amapets.uy',
   tiktok_handle: '@amapets.uy',
@@ -70,6 +73,20 @@ async function seed() {
     // sitio todavía usa el logo por defecto (si el admin ya subió uno propio
     // desde el panel, currentLogo apunta a /uploads/logo/... y no se toca).
     await setSetting('logo_path', DEFAULT_SETTINGS.logo_path);
+  }
+
+  // Migración: la portada de inicio pasó de ser un fondo decorativo con texto
+  // ("Todo para su bienestar") a la foto real que mandó la tienda. Solo se
+  // actualiza si el sitio todavía tiene la portada de fábrica sin foto (si el
+  // admin ya subió su propia foto o escribió su propio título, no se toca).
+  const currentHeroImage = await getSetting('hero_image');
+  const currentHeroTitle = await getSetting('hero_title');
+  if (!currentHeroImage && currentHeroTitle === 'Todo para su bienestar') {
+    await setSettings({
+      hero_image: DEFAULT_SETTINGS.hero_image,
+      hero_title: '',
+      hero_subtitle: '',
+    });
   }
 
   // Admin user
