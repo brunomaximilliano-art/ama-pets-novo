@@ -38,17 +38,6 @@
           </span>
           <span class="chevron">›</span>
         </label>
-
-        <% if (settings.pickup_enabled === '1') { %>
-        <label class="delivery-option">
-          <input type="radio" name="delivery" value="retirada" id="delivery-retirada" autocomplete="off" />
-          <span class="delivery-option__icon">🏠</span>
-          <span>
-            <strong>Retirada</strong>
-            <p class="delivery-option__note"><%= settings.pickup_days %> · <%= settings.pickup_note %></p>
-          </span>
-        </label>
-        <% } %>
       </div>
     </div>
 

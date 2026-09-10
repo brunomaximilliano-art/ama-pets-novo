@@ -29,16 +29,17 @@
     </p>
 
     <div class="add-to-cart-widget" id="add-to-cart-widget">
-      <button type="button" class="btn btn--primary" id="btn-add">Añadir</button>
-      <div class="qty-stepper" id="qty-stepper" hidden>
-        <button type="button" class="qty-btn" id="qty-remove" aria-label="Quitar">🗑</button>
+      <div class="qty-stepper" id="qty-stepper">
+        <button type="button" class="qty-btn" id="qty-minus" aria-label="Restar">−</button>
         <span class="qty-value" id="qty-value">1</span>
         <button type="button" class="qty-btn" id="qty-plus" aria-label="Sumar">+</button>
       </div>
+      <button type="button" class="btn btn--primary" id="btn-add">Añadir</button>
       <% if (product.track_stock) { %>
         <span class="product-detail__stock">Disponible: <%= product.stock %></span>
       <% } %>
     </div>
+    <p class="add-to-cart-widget__in-cart" id="in-cart-note" hidden></p>
 
     <section class="product-description">
       <h2>Descripción</h2>

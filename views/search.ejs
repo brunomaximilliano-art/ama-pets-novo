@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include('partials/head', { pageTitle: query ? 'Resultados para "' + query + '"' : 'Buscar' }) %>
+</head>
+<body>
+  <%- include('partials/header', { showBack: true, query: query }) %>
+
+  <main class="main">
+    <h1 class="page-title"><%= query ? 'Resultados para "' + query + '"' : 'Buscar productos' %></h1>
+
+    <% if (!query) { %>
+      <div class="empty-state">
+        <p>Escribí una palabra en el buscador para encontrar productos en toda la tienda.</p>
+      </div>
+    <% } else if (!products.length) { %>
+      <div class="empty-state">
+        <p>No encontramos productos para "<%= query %>".</p>
+        <p class="empty-state__muted">Probá con otra palabra, o mirá las categorías desde el menú.</p>
+      </div>
+    <% } else { %>
+      <div class="view-toggle">
+        <button type="button" class="view-toggle__btn" data-view="grid" aria-label="Ver en grilla">▦</button>
+        <button type="button" class="view-toggle__btn" data-view="list" aria-label="Ver en lista">☰</button>
+      </div>
+      <div class="product-grid">
+        <% products.forEach(function(product) { %>
+          <%- include('partials/product-card', { product: product }) %>
+        <% }) %>
+      </div>
+    <% } %>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

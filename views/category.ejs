@@ -10,6 +10,11 @@
     <h1 class="page-title"><%= category.name %></h1>
     <% if (!products.length) { %>
       <div class="empty-state"><p>No hay productos en esta categoría todavía.</p></div>
+    <% } else { %>
+      <div class="view-toggle">
+        <button type="button" class="view-toggle__btn" data-view="grid" aria-label="Ver en grilla">▦</button>
+        <button type="button" class="view-toggle__btn" data-view="list" aria-label="Ver en lista">☰</button>
+      </div>
     <% } %>
     <div class="product-grid">
       <% products.forEach(function(product) { %>
