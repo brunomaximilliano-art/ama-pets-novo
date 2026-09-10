@@ -118,7 +118,9 @@
     var courier = JSON.parse(localStorage.getItem(K.COURIER_KEY) || 'null');
     if (courier) {
       courierChosenEl.hidden = false;
-      courierChosenEl.innerHTML = '<strong>' + escapeHtml(courier.name) + '</strong> — ' + escapeHtml(courier.note || '');
+      courierChosenEl.innerHTML =
+        '<strong>' + escapeHtml(courier.name) + '</strong> — ' + escapeHtml(courier.note || '') +
+        '<span class="courier-chosen__change">Cambiar ›</span>';
     } else {
       courierChosenEl.hidden = true;
     }
@@ -128,12 +130,25 @@
     if (r.value === savedDelivery) r.checked = true;
     r.addEventListener('change', function () {
       localStorage.setItem(K.DELIVERY_KEY, r.value);
-      if (r.value === 'entrega' && couriers.length) {
-        openCourierModal();
-      }
     });
   });
   updateCourierChosenDisplay();
+
+  // Un radio que ya está marcado no dispara el evento "change" al tocarlo de
+  // nuevo (solo dispara cuando cambia de estado) — por eso antes, una vez
+  // elegida "Entrega" y una transportadora, no había forma de volver a tocar
+  // esa opción para cambiarla: el modal simplemente no se volvía a abrir.
+  // Escuchando el "click" de toda la opción (que sí ocurre siempre) y
+  // revisando si el radio quedó marcado, el selector se puede reabrir tanto
+  // la primera vez como cualquier otra vez después para cambiar de opción.
+  var entregaOption = document.getElementById('delivery-entrega').closest('.delivery-option');
+  if (entregaOption) {
+    entregaOption.addEventListener('click', function () {
+      if (document.getElementById('delivery-entrega').checked && couriers.length) {
+        openCourierModal();
+      }
+    });
+  }
 
   // Modal de transportadora
   var courierList = document.getElementById('courier-list');
