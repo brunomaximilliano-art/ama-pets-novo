@@ -20,6 +20,16 @@ router.get('/products', async (req, res, next) => {
         'SELECT path FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
         [p.id]
       );
+      // Se traen todas las opciones (no solo las que tienen stock) para que el
+      // carrito y el checkout siempre puedan mostrar la etiqueta elegida,
+      // incluso si el stock cambió después de agregarla al carrito.
+      let variants = [];
+      if (p.variants_enabled) {
+        variants = await db.all(
+          'SELECT id, label, stock FROM product_variants WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+          [p.id]
+        );
+      }
       out.push({
         id: p.id,
         name: p.name,
@@ -31,6 +41,8 @@ router.get('/products', async (req, res, next) => {
         category: p.category_name,
         categorySlug: p.category_slug,
         images: images.map((r) => r.path),
+        variantsEnabled: !!p.variants_enabled,
+        variants,
       });
     }
 
@@ -59,6 +71,8 @@ router.post('/orders', express.json(), async (req, res, next) => {
       deliveryMethod,
       courierName,
       address,
+      city,
+      department,
       paymentMethod,
       cashAmount,
       customerName,
@@ -80,12 +94,14 @@ router.post('/orders', express.json(), async (req, res, next) => {
     }
 
     const info = await db.run(
-      `INSERT INTO orders (customer_name, phone, address, delivery_method, courier_name, payment_method, observation, items_json, total)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO orders (customer_name, phone, address, city, department, delivery_method, courier_name, payment_method, observation, items_json, total)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         customerName,
         phone,
         address || '',
+        city || '',
+        department || '',
         deliveryMethod,
         courierName || '',
         paymentMethod,
@@ -100,6 +116,8 @@ router.post('/orders', express.json(), async (req, res, next) => {
       deliveryMethod,
       courierName,
       address,
+      city,
+      department,
       paymentMethod,
       cashAmount: Number(cashAmount) || 0,
       customerName,
