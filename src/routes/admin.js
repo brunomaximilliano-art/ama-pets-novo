@@ -126,7 +126,7 @@ router.get('/productos', async (req, res, next) => {
 router.get('/productos/nuevo', async (req, res, next) => {
   try {
     const categories = await db.all('SELECT * FROM categories ORDER BY sort_order ASC, name ASC');
-    res.render('admin/product-form', { product: null, images: [], categories });
+    res.render('admin/product-form', { product: null, images: [], categories, variants: [] });
   } catch (err) {
     next(err);
   }
@@ -141,7 +141,11 @@ router.get('/productos/:id/editar', async (req, res, next) => {
       'SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
       [product.id]
     );
-    res.render('admin/product-form', { product, images, categories });
+    const variants = await db.all(
+      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+      [product.id]
+    );
+    res.render('admin/product-form', { product, images, categories, variants });
   } catch (err) {
     next(err);
   }
@@ -156,6 +160,28 @@ async function uniqueSlug(name, excludeId) {
     slug = `${slugify(name)}-${++n}`;
   }
   return slug;
+}
+
+// Talles/colores: se reemplazan todos de una, en el orden en que llegaron del
+// formulario (mismo enfoque simple que ya se usa en el resto del panel). Las
+// filas con etiqueta vacía se descartan.
+async function saveVariants(body, productId) {
+  await db.run('DELETE FROM product_variants WHERE product_id = ?', [productId]);
+  const labels = [].concat(body.variant_label || []);
+  const stocks = [].concat(body.variant_stock || []);
+  let order = 0;
+  for (let i = 0; i < labels.length; i++) {
+    const label = (labels[i] || '').toString().trim();
+    if (!label) continue;
+    const stock = Math) {
+    const label = (labels[i] || '').toString().trim();
+    if (!label) continue;
+    const stock = Math.max(0, Number(stocks[i]) || 0);
+    await db.run(
+      'INSERT INTO product_variants (product_id, label, stock, sort_order) VALUES (?, ?, ?, ?)',
+      [productId, label, stock, order++]
+    );
+  }
 }
 
 async function saveUploadedImages(files, productId) {
@@ -189,8 +215,8 @@ router.post('/productos', uploadProductMedia, async (req, res, next) => {
     }
 
     const info = await db.run(
-      `INSERT INTO products (category_id, name, slug, description, price, promo_price, stock, track_stock, video_url, active, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      `INSERT INTO products (category_id, name, slug, description, price, promo_price, stock, track_stock, video_url, active, variants_enabled, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         b.category_id || null,
         b.name,
@@ -202,11 +228,13 @@ router.post('/productos', uploadProductMedia, async (req, res, next) => {
         trackStock,
         videoUrl,
         b.active ? 1 : 0,
+        b.variants_enabled ? 1 : 0,
       ]
     );
 
     const productId = info.lastInsertRowid;
     await saveUploadedImages(files.images, productId);
+    await saveVariants(b, productId);
     res.redirect(`/admin/productos/${productId}/editar`);
   } catch (err) {
     next(err);
@@ -231,7 +259,7 @@ router.post('/productos/:id/editar', uploadProductMedia, async (req, res, next) 
     }
 
     await db.run(
-      `UPDATE products SET category_id=?, name=?, slug=?, description=?, price=?, promo_price=?, stock=?, track_stock=?, video_url=?, active=? WHERE id=?`,
+      `UPDATE products SET category_id=?, name=?, slug=?, description=?, price=?, promo_price=?, stock=?, track_stock=?, video_url=?, active=?, variants_enabled=? WHERE id=?`,
       [
         b.category_id || null,
         b.name,
@@ -243,11 +271,13 @@ router.post('/productos/:id/editar', uploadProductMedia, async (req, res, next) 
         trackStock,
         videoUrl,
         b.active ? 1 : 0,
+        b.variants_enabled ? 1 : 0,
         id,
       ]
     );
 
     await saveUploadedImages(files.images, id);
+    await saveVariants(b, id);
     res.redirect(`/admin/productos/${id}/editar`);
   } catch (err) {
     next(err);
