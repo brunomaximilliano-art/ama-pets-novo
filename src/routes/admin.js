@@ -376,3 +376,91 @@ router.post('/entrega/transportadoras/:id', async (req, res, next) => {
 router.get('/pagos', async (req, res, next) => {
   try {
     const settings = await db.getSettings();
+    res.render('admin/payments', { settings });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/pagos', async (req, res, next) => {
+  try {
+    const b = req.body;
+    await db.setSettings({
+      cash_enabled: b.cash_enabled ? '1' : '0',
+      transfer_enabled: b.transfer_enabled ? '1' : '0',
+      card_enabled: b.card_enabled ? '1' : '0',
+      mercadopago_enabled: b.mercadopago_enabled ? '1' : '0',
+      mercadopago_surcharge_pct: b.mercadopago_surcharge_pct || '0',
+      transfer_info: b.transfer_info || '',
+    });
+    res.redirect('/admin/pagos');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------- Configuración de tienda ----------
+router.get('/configuracion', async (req, res, next) => {
+  try {
+    const settings = await db.getSettings();
+    res.render('admin/settings', { settings });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/configuracion', uploadSettings, async (req, res, next) => {
+  try {
+    const b = req.body;
+    const files = req.files || {};
+    const update = {
+      store_name: b.store_name || 'Mi tienda',
+      store_tagline: b.store_tagline || '',
+      whatsapp_number: (b.whatsapp_number || '').replace(/[^\d]/g, ''),
+      store_address: b.store_address || '',
+      primary_color: b.primary_color || '#c96f56',
+      secondary_color: b.secondary_color || '#6b4530',
+      bg_color: b.bg_color || '#fbf4ec',
+      hero_title: b.hero_title || '',
+      hero_subtitle: b.hero_subtitle || '',
+      instagram_handle: b.instagram_handle || '',
+      tiktok_handle: b.tiktok_handle || '',
+    };
+    if (files.logo && files.logo[0]) {
+      update.logo_path = await saveBuffer(files.logo[0].buffer, 'logo', files.logo[0].originalname, files.logo[0].mimetype);
+    }
+    if (files.hero_image && files.hero_image[0]) {
+      update.hero_image = await saveBuffer(
+        files.hero_image[0].buffer,
+        'hero',
+        files.hero_image[0].originalname,
+        files.hero_image[0].mimetype
+      );
+    }
+    await db.setSettings(update);
+    res.redirect('/admin/configuracion');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------- Pedidos ----------
+router.get('/pedidos', async (req, res, next) => {
+  try {
+    const orders = await db.all('SELECT * FROM orders ORDER BY id DESC');
+    res.render('admin/orders', { orders });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/pedidos/:id/estado', async (req, res, next) => {
+  try {
+    await db.run('UPDATE orders SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
+    res.redirect('/admin/pedidos');
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;
