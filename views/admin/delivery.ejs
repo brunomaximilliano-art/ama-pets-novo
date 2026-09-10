@@ -16,14 +16,7 @@
 
         <label>Texto que ve el cliente sobre la entrega</label>
         <textarea name="delivery_note" rows="3"><%= settings.delivery_note %></textarea>
-
-        <div class="admin-checkbox-row">
-          <label><input type="checkbox" name="pickup_enabled" value="1" <%= settings.pickup_enabled === '1' ? 'checked' : '' %> /> Ofrecer opción de retirada en el local</label>
-        </div>
-        <label>Tiempo de preparación para retirar</label>
-        <input type="text" name="pickup_days" value="<%= settings.pickup_days %>" placeholder="Ej: 3 días" />
-        <label>Nota de retirada (dirección, horarios, etc.)</label>
-        <textarea name="pickup_note" rows="2"><%= settings.pickup_note %></textarea>
+        <p class="admin-hint">La tienda solo ofrece envío a domicilio (no hay opción de retirada en el local).</p>
 
         <div class="admin-form__actions">
           <button type="submit" class="btn btn--primary">Guardar</button>

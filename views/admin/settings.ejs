@@ -18,9 +18,31 @@
       <input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number %>" placeholder="59898017328" required />
 
       <label>Logo actual</label>
-      <img src="<%= settings.logo_path %>" alt="Logo" style="height:80px;border-radius:8px;margin-bottom:10px;display:block;" />
+      <img src="<%= settings.logo_path %>" alt="Logo" style="height:80px;border-radius:8px;margin-bottom:10px;display:block;background:#f6ece0;padding:6px;" />
       <label>Cambiar logo</label>
       <input type="file" name="logo" accept="image/*" />
+
+      <label>Instagram</label>
+      <input type="text" name="instagram_handle" value="<%= settings.instagram_handle %>" placeholder="@amapets.uy" />
+
+      <label>TikTok</label>
+      <input type="text" name="tiktok_handle" value="<%= settings.tiktok_handle %>" placeholder="@amapets.uy" />
+
+      <h2 style="margin-top:26px;">Portada de la página de inicio</h2>
+      <p class="admin-hint">Si no subís una foto, se muestra un fondo decorativo en su lugar.</p>
+
+      <label>Título de la portada</label>
+      <input type="text" name="hero_title" value="<%= settings.hero_title %>" placeholder="Todo para su bienestar" />
+
+      <label>Subtítulo de la portada</label>
+      <input type="text" name="hero_subtitle" value="<%= settings.hero_subtitle %>" placeholder="Todo lo que tu mascota necesita, en un solo lugar." />
+
+      <% if (settings.hero_image) { %>
+        <label>Foto de portada actual</label>
+        <img src="<%= settings.hero_image %>" alt="Portada" style="height:100px;width:220px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;" />
+      <% } %>
+      <label>Cambiar foto de portada</label>
+      <input type="file" name="hero_image" accept="image/*" />
 
       <div class="admin-form__row">
         <div>
