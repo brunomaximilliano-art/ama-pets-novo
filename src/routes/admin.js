@@ -403,45 +403,67 @@ router.post('/pagos', async (req, res, next) => {
 router.get('/configuracion', async (req, res, next) => {
   try {
     const settings = await db.getSettings();
-    res.render('admin/settings', { settings });
+    res.render('admin/settings', { settings, error: null });
   } catch (err) {
     next(err);
   }
 });
 
-router.post('/configuracion', uploadSettings, async (req, res, next) => {
-  try {
-    const b = req.body;
-    const files = req.files || {};
-    const update = {
-      store_name: b.store_name || 'Mi tienda',
-      store_tagline: b.store_tagline || '',
-      whatsapp_number: (b.whatsapp_number || '').replace(/[^\d]/g, ''),
-      store_address: b.store_address || '',
-      primary_color: b.primary_color || '#c96f56',
-      secondary_color: b.secondary_color || '#6b4530',
-      bg_color: b.bg_color || '#fbf4ec',
-      hero_title: b.hero_title || '',
-      hero_subtitle: b.hero_subtitle || '',
-      instagram_handle: b.instagram_handle || '',
-      tiktok_handle: b.tiktok_handle || '',
-    };
-    if (files.logo && files.logo[0]) {
-      update.logo_path = await saveBuffer(files.logo[0].buffer, 'logo', files.logo[0].originalname, files.logo[0].mimetype);
+// Antes acá se usaba "uploadSettings" directo como middleware de la ruta. El
+// problema: si la foto es muy pesada (más de 4MB) o no es una imagen, multer
+// corta la subida con un error ANTES de que este handler llegue a ejecutarse,
+// y ese error caía derecho en la pantalla genérica de "Ocurrió un error en el
+// servidor" — sin decir qué pasó realmente. Envolviendo la llamada a mano
+// podemos mostrar un mensaje claro y devolver a la persona a la misma
+// pantalla con lo que ya tenía cargado, en vez de una pantalla de error.
+router.post('/configuracion', (req, res, next) => {
+  uploadSettings(req, res, async (uploadErr) => {
+    if (uploadErr) {
+      try {
+        const settings = await db.getSettings();
+        const msg =
+          uploadErr.code === 'LIMIT_FILE_SIZE'
+            ? 'La imagen es demasiado pesada (máximo 4MB). Probá con una foto más liviana, o sacale una captura de pantalla más chica y subí esa.'
+            : uploadErr.message || 'No se pudo subir la imagen.';
+        return res.status(400).render('admin/settings', { settings, error: msg });
+      } catch (err) {
+        return next(err);
+      }
     }
-    if (files.hero_image && files.hero_image[0]) {
-      update.hero_image = await saveBuffer(
-        files.hero_image[0].buffer,
-        'hero',
-        files.hero_image[0].originalname,
-        files.hero_image[0].mimetype
-      );
+
+    try {
+      const b = req.body;
+      const files = req.files || {};
+      const update = {
+        store_name: b.store_name || 'Mi tienda',
+        store_tagline: b.store_tagline || '',
+        whatsapp_number: (b.whatsapp_number || '').replace(/[^\d]/g, ''),
+        store_address: b.store_address || '',
+        primary_color: b.primary_color || '#c96f56',
+        secondary_color: b.secondary_color || '#6b4530',
+        bg_color: b.bg_color || '#fbf4ec',
+        hero_title: b.hero_title || '',
+        hero_subtitle: b.hero_subtitle || '',
+        instagram_handle: b.instagram_handle || '',
+        tiktok_handle: b.tiktok_handle || '',
+      };
+      if (files.logo && files.logo[0]) {
+        update.logo_path = await saveBuffer(files.logo[0].buffer, 'logo', files.logo[0].originalname, files.logo[0].mimetype);
+      }
+      if (files.hero_image && files.hero_image[0]) {
+        update.hero_image = await saveBuffer(
+          files.hero_image[0].buffer,
+          'hero',
+          files.hero_image[0].originalname,
+          files.hero_image[0].mimetype
+        );
+      }
+      await db.setSettings(update);
+      res.redirect('/admin/configuracion');
+    } catch (err) {
+      next(err);
     }
-    await db.setSettings(update);
-    res.redirect('/admin/configuracion');
-  } catch (err) {
-    next(err);
-  }
+  });
 });
 
 // ---------- Pedidos ----------
