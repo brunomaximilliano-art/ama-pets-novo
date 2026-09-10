@@ -1,5 +1,7 @@
 // Lógica de carrito compartida por todas las páginas de la tienda.
-// El carrito se guarda en localStorage: { "<productId>": qty, ... }
+// El carrito se guarda en localStorage: { "<clave>": qty, ... }
+// La clave es el id del producto solo ("5"), o el id del producto más el id
+// de la opción elegida ("5__v12") cuando el producto tiene talles/colores.
 (function () {
   var CART_KEY = 'amapets_cart';
   var OBS_KEY = 'amapets_observation';
@@ -11,6 +13,16 @@
     var parts = num.toFixed(2).split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return '$ ' + parts[0] + ',' + parts[1];
+  }
+
+  function keyFor(productId, variantId) {
+    return variantId ? String(productId) + '__v' + variantId : String(productId);
+  }
+  function parseKey(key) {
+    var s = String(key);
+    var idx = s.indexOf('__v');
+    if (idx === -1) return { productId: s, variantId: null };
+    return { productId: s.slice(0, idx), variantId: s.slice(idx + 3) };
   }
 
   function getCart() {
@@ -81,7 +93,7 @@
       var total = 0;
       var count = 0;
       ids.forEach(function (id) {
-        var p = byId[id];
+        var p = byId[parseKey(id).productId];
         if (!p) return;
         total += productPrice(p) * cart[id];
         count += cart[id];
@@ -121,13 +133,42 @@
     if (!widget) return;
     var root = document.querySelector('.product-detail');
     var id = String(root.dataset.productId);
+    var variantsEnabled = root.dataset.variantsEnabled === '1';
     var btnAdd = document.getElementById('btn-add');
     var qtyValue = document.getElementById('qty-value');
     var btnPlus = document.getElementById('qty-plus');
     var btnMinus = document.getElementById('qty-minus');
     var inCartNote = document.getElementById('in-cart-note');
+    var variantPicker = document.getElementById('variant-picker');
+    var variantOptions = variantPicker ? Array.prototype.slice.call(variantPicker.querySelectorAll('.variant-option')) : [];
 
     var selectedQty = 1;
+    var selectedVariantId = null;
+    var selectedVariantLabel = null;
+
+    function cartKey() {
+      return keyFor(id, selectedVariantId);
+    }
+
+    function updateAddAvailability() {
+      if (!variantsEnabled) return;
+      // Sin opciones en stock, o con opciones pero ninguna elegida todavía:
+      // no se puede añadir al carrito.
+      btnAdd.disabled = !variantOptions.length || !selectedVariantId;
+    }
+
+    variantOptions.forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        variantOptions.forEach(function (o) {
+          o.classList.remove('is-selected');
+        });
+        opt.classList.add('is-selected');
+        selectedVariantId = opt.dataset.variantId;
+        selectedVariantLabel = opt.dataset.variantLabel;
+        updateAddAvailability();
+        renderInCart();
+      });
+    });
 
     function renderQty() {
       qtyValue.textContent = selectedQty;
@@ -136,12 +177,18 @@
 
     function renderInCart() {
       if (!inCartNote) return;
+      if (variantsEnabled && !selectedVariantId) {
+        inCartNote.hidden = true;
+        return;
+      }
       var cart = getCart();
-      var qty = cart[id] || 0;
+      var qty = cart[cartKey()] || 0;
       if (qty > 0) {
         inCartNote.hidden = false;
         inCartNote.textContent =
-          'Ya tienes ' + qty + (qty === 1 ? ' unidad' : ' unidades') + ' de este producto en el carrito.';
+          'Ya tienes ' + qty + (qty === 1 ? ' unidad' : ' unidades') +
+          (selectedVariantLabel ? ' (' + selectedVariantLabel + ')' : '') +
+          ' de este producto en el carrito.';
       } else {
         inCartNote.hidden = true;
       }
@@ -156,7 +203,8 @@
       renderQty();
     });
     btnAdd.addEventListener('click', function () {
-      addToCart(id, selectedQty);
+      if (variantsEnabled && !selectedVariantId) return;
+      addToCart(cartKey(), selectedQty);
       renderInCart();
       selectedQty = 1;
       renderQty();
@@ -166,12 +214,13 @@
       btnAdd.disabled = true;
       setTimeout(function () {
         btnAdd.textContent = originalText;
-        btnAdd.disabled = false;
+        updateAddAvailability();
       }, 1000);
     });
 
     document.addEventListener('cart:changed', renderInCart);
 
+    updateAddAvailability();
     renderQty();
     renderInCart();
   }
@@ -229,6 +278,8 @@
     clearCart: clearCart,
     loadProducts: loadProducts,
     productPrice: productPrice,
+    keyFor: keyFor,
+    parseKey: parseKey,
     keys: { OBS_KEY: OBS_KEY, DELIVERY_KEY: DELIVERY_KEY, COURIER_KEY: COURIER_KEY },
   };
 })();
