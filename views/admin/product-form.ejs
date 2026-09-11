@@ -8,6 +8,10 @@
   <main class="admin-main">
     <h1><%= product ? 'Editar producto' : 'Nuevo producto' %></h1>
 
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="admin-error" style="margin-bottom:16px;"><%= error %></p>
+    <% } %>
+
     <form
       method="post"
       action="<%= product ? '/admin/productos/' + product.id + '/editar' : '/admin/productos' %>"
@@ -146,5 +150,6 @@
       }
     })();
   </script>
+  <script src="/js/image-compress.js"></script>
 </body>
 </html>
