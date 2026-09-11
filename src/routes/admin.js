@@ -199,86 +199,149 @@ async function saveUploadedImages(files, productId) {
   }
 }
 
-router.post('/productos', uploadProductMedia, async (req, res, next) => {
-  try {
-    const b = req.body;
-    const files = req.files || {};
-    const slug = await uniqueSlug(b.name);
-    const trackStock = b.track_stock ? 1 : 0;
-
-    let videoUrl = b.video_url || '';
-    if (files.video && files.video[0]) {
-      videoUrl = await saveBuffer(files.video[0].buffer, 'videos', files.video[0].originalname, files.video[0].mimetype);
-    }
-
-    const info = await db.run(
-      `INSERT INTO products (category_id, name, slug, description, price, promo_price, stock, track_stock, video_url, active, variants_enabled, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [
-        b.category_id || null,
-        b.name,
-        slug,
-        b.description || '',
-        Number(b.price) || 0,
-        b.promo_price ? Number(b.promo_price) : null,
-        trackStock ? Number(b.stock) || 0 : null,
-        trackStock,
-        videoUrl,
-        b.active ? 1 : 0,
-        b.variants_enabled ? 1 : 0,
-      ]
+// Vuelve a armar los datos que necesita la vista product-form (categorías,
+// fotos ya guardadas, talles/colores) para poder volver a mostrar el
+// formulario con un mensaje de error en vez de la pantalla de error genérica,
+// cuando algo falla al guardar (mismo enfoque que ya se usa en /configuracion).
+async function renderProductFormError(res, status, { product, errorMsg }) {
+  const categories = await db.all('SELECT * FROM categories ORDER BY sort_order ASC, name ASC');
+  let images = [];
+  let variants = [];
+  if (product && product.id) {
+    images = await db.all(
+      'SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+      [product.id]
     );
-
-    const productId = info.lastInsertRowid;
-    await saveUploadedImages(files.images, productId);
-    await saveVariants(b, productId);
-    res.redirect(`/admin/productos/${productId}/editar`);
-  } catch (err) {
-    next(err);
+    variants = await db.all(
+      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+      [product.id]
+    );
   }
+  res.status(status).render('admin/product-form', { product, images, categories, variants, error: errorMsg });
+}
+
+function friendlyUploadError(uploadErr) {
+  if (uploadErr.code === 'LIMIT_FILE_SIZE') {
+    return 'Alguno de los archivos es demasiado pesado (máximo 4MB). Probá con una foto o video más liviano.';
+  }
+  if (uploadErr.code === 'LIMIT_FILE_COUNT' || uploadErr.code === 'LIMIT_UNEXPECTED_FILE') {
+    return 'Se subieron demasiados archivos a la vez. Probá con menos fotos, o de a una por vez.';
+  }
+  return uploadErr.message || 'No se pudieron subir los archivos.';
+}
+
+router.post('/productos', (req, res, next) => {
+  uploadProductMedia(req, res, async (uploadErr) => {
+    if (uploadErr) {
+      return renderProductFormError(res, 400, { product: null, errorMsg: friendlyUploadError(uploadErr) });
+    }
+    try {
+      const b = req.body;
+      const files = req.files || {};
+      const slug = await uniqueSlug(b.name);
+      const trackStock = b.track_stock ? 1 : 0;
+
+      let videoUrl = b.video_url || '';
+      if (files.video && files.video[0]) {
+        videoUrl = await saveBuffer(files.video[0].buffer, 'videos', files.video[0].originalname, files.video[0].mimetype);
+      }
+
+      const info = await db.run(
+        `INSERT INTO products (category_id, name, slug, description, price, promo_price, stock, track_stock, video_url, active, variants_enabled, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [
+          b.category_id || null,
+          b.name,
+          slug,
+          b.description || '',
+          Number(b.price) || 0,
+          b.promo_price ? Number(b.promo_price) : null,
+          trackStock ? Number(b.stock) || 0 : null,
+          trackStock,
+          videoUrl,
+          b.active ? 1 : 0,
+          b.variants_enabled ? 1 : 0,
+        ]
+      );
+
+      const productId = info.lastInsertRowid;
+      await saveUploadedImages(files.images, productId);
+      await saveVariants(b, productId);
+      res.redirect(`/admin/productos/${productId}/editar`);
+    } catch (err) {
+      console.error('Error en POST /admin/productos:', err);
+      try {
+        await renderProductFormError(res, 500, {
+          product: null,
+          errorMsg: 'No se pudo guardar: ' + (err && err.message ? err.message : 'error desconocido'),
+        });
+      } catch (err2) {
+        next(err2);
+      }
+    }
+  });
 });
 
-router.post('/productos/:id/editar', uploadProductMedia, async (req, res, next) => {
-  try {
-    const b = req.body;
-    const files = req.files || {};
-    const id = req.params.id;
-    const existing = await db.get('SELECT * FROM products WHERE id = ?', [id]);
-    if (!existing) return res.redirect('/admin/productos');
-
-    const slug = b.name && b.name !== existing.name ? await uniqueSlug(b.name, id) : existing.slug;
-    const trackStock = b.track_stock ? 1 : 0;
-
-    let videoUrl = b.video_url || '';
-    if (files.video && files.video[0]) {
-      if (existing.video_url) await deleteFile(existing.video_url);
-      videoUrl = await saveBuffer(files.video[0].buffer, 'videos', files.video[0].originalname, files.video[0].mimetype);
+router.post('/productos/:id/editar', (req, res, next) => {
+  uploadProductMedia(req, res, async (uploadErr) => {
+    if (uploadErr) {
+      try {
+        const existing = await db.get('SELECT * FROM products WHERE id = ?', [req.params.id]);
+        return renderProductFormError(res, 400, { product: existing, errorMsg: friendlyUploadError(uploadErr) });
+      } catch (err) {
+        return next(err);
+      }
     }
+    try {
+      const b = req.body;
+      const files = req.files || {};
+      const id = req.params.id;
+      const existing = await db.get('SELECT * FROM products WHERE id = ?', [id]);
+      if (!existing) return res.redirect('/admin/productos');
 
-    await db.run(
-      `UPDATE products SET category_id=?, name=?, slug=?, description=?, price=?, promo_price=?, stock=?, track_stock=?, video_url=?, active=?, variants_enabled=? WHERE id=?`,
-      [
-        b.category_id || null,
-        b.name,
-        slug,
-        b.description || '',
-        Number(b.price) || 0,
-        b.promo_price ? Number(b.promo_price) : null,
-        trackStock ? Number(b.stock) || 0 : null,
-        trackStock,
-        videoUrl,
-        b.active ? 1 : 0,
-        b.variants_enabled ? 1 : 0,
-        id,
-      ]
-    );
+      const slug = b.name && b.name !== existing.name ? await uniqueSlug(b.name, id) : existing.slug;
+      const trackStock = b.track_stock ? 1 : 0;
 
-    await saveUploadedImages(files.images, id);
-    await saveVariants(b, id);
-    res.redirect(`/admin/productos/${id}/editar`);
-  } catch (err) {
-    next(err);
-  }
+      let videoUrl = b.video_url || '';
+      if (files.video && files.video[0]) {
+        if (existing.video_url) await deleteFile(existing.video_url);
+        videoUrl = await saveBuffer(files.video[0].buffer, 'videos', files.video[0].originalname, files.video[0].mimetype);
+      }
+
+      await db.run(
+        `UPDATE products SET category_id=?, name=?, slug=?, description=?, price=?, promo_price=?, stock=?, track_stock=?, video_url=?, active=?, variants_enabled=? WHERE id=?`,
+        [
+          b.category_id || null,
+          b.name,
+          slug,
+          b.description || '',
+          Number(b.price) || 0,
+          b.promo_price ? Number(b.promo_price) : null,
+          trackStock ? Number(b.stock) || 0 : null,
+          trackStock,
+          videoUrl,
+          b.active ? 1 : 0,
+          b.variants_enabled ? 1 : 0,
+          id,
+        ]
+      );
+
+      await saveUploadedImages(files.images, id);
+      await saveVariants(b, id);
+      res.redirect(`/admin/productos/${id}/editar`);
+    } catch (err) {
+      console.error('Error en POST /admin/productos/:id/editar:', err);
+      try {
+        const existing = await db.get('SELECT * FROM products WHERE id = ?', [req.params.id]);
+        await renderProductFormError(res, 500, {
+          product: existing,
+          errorMsg: 'No se pudo guardar: ' + (err && err.message ? err.message : 'error desconocido'),
+        });
+      } catch (err2) {
+        next(err2);
+      }
+    }
+  });
 });
 
 router.post('/productos/:id/imagenes/:imageId/eliminar', async (req, res, next) => {
